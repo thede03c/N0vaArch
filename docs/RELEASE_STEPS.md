@@ -19,7 +19,7 @@
    - validate app choice install log at `/var/log/novaarch-installer-choices.log`
 6. Publish through GitHub Actions:
    - open Actions -> `Build NovaArch ISO`
-   - choose `kernel_track` (`zen`, `cachy`, `lts`)
+   - choose `kernel_track` (`zen` for zen+LTS menus, or `lts` for LTS-only)
    - download `*.iso` and `SHA256SUMS.txt`
 7. Final USB test:
    - flash with Rufus

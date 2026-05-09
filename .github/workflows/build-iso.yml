@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        kernel_track: [zen, lts, cachy]
+        kernel_track: [zen, lts]
 
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +53,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        kernel_track: [zen, lts, cachy]
+        kernel_track: [zen, lts]
 
     steps:
       - name: Download ISO artifact
@@ -74,7 +74,6 @@ jobs:
           case "${{ matrix.kernel_track }}" in
             zen) KERNEL_BASENAME="linux-zen" ;;
             lts) KERNEL_BASENAME="linux-lts" ;;
-            cachy) KERNEL_BASENAME="linux-cachyos" ;;
             *) echo "Unsupported kernel track"; exit 1 ;;
           esac
           mkdir -p qemu-extract

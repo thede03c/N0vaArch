@@ -21,12 +21,6 @@ case "${track}" in
     PRIMARY_KERNEL_BASENAME="linux-zen"
     PRIMARY_TITLE="NovaArch Live (x86_64, gaming daily - zen)"
     ;;
-  cachy)
-    KERNEL_PACKAGE="linux-cachyos"
-    KERNEL_HEADERS_PACKAGE="linux-cachyos-headers"
-    PRIMARY_KERNEL_BASENAME="linux-cachyos"
-    PRIMARY_TITLE="NovaArch Live (x86_64, gaming daily - cachy)"
-    ;;
   lts)
     KERNEL_PACKAGE="linux-lts"
     KERNEL_HEADERS_PACKAGE="linux-lts-headers"
@@ -34,7 +28,7 @@ case "${track}" in
     PRIMARY_TITLE="NovaArch Live (x86_64, stability - lts)"
     ;;
   *)
-    echo "Unsupported KERNEL_TRACK '${track}'. Use: zen, cachy, lts"
+    echo "Unsupported KERNEL_TRACK '${track}'. Use: zen, lts"
     exit 1
     ;;
 esac
@@ -106,35 +100,59 @@ sed -i "s|@KERNEL_HEADERS_PACKAGE@|${KERNEL_HEADERS_PACKAGE}|g" "${PROFILE_DIR}/
 ENTRY_PRIMARY="${PROFILE_DIR}/efiboot/loader/entries/01-novaarch-linux.conf"
 ENTRY_FALLBACK="${PROFILE_DIR}/efiboot/loader/entries/02-novaarch-linux-lts.conf"
 LOADER_CONF="${PROFILE_DIR}/efiboot/loader/loader.conf"
+SYS_SYS_LINUX="${PROFILE_DIR}/syslinux/archiso_sys-linux.cfg"
+SYS_PXE_LINUX="${PROFILE_DIR}/syslinux/archiso_pxe-linux.cfg"
 ENTRY_PRIMARY_BAK="$(mktemp)"
 ENTRY_FALLBACK_BAK="$(mktemp)"
 LOADER_CONF_BAK="$(mktemp)"
+SYS_SYS_LINUX_BAK="$(mktemp)"
+SYS_PXE_LINUX_BAK="$(mktemp)"
 cp "${ENTRY_PRIMARY}" "${ENTRY_PRIMARY_BAK}"
 cp "${ENTRY_FALLBACK}" "${ENTRY_FALLBACK_BAK}"
 cp "${LOADER_CONF}" "${LOADER_CONF_BAK}"
-trap 'cp "${ENTRY_PRIMARY_BAK}" "${ENTRY_PRIMARY}"; cp "${ENTRY_FALLBACK_BAK}" "${ENTRY_FALLBACK}"; cp "${LOADER_CONF_BAK}" "${LOADER_CONF}"; rm -f "${ENTRY_PRIMARY_BAK}" "${ENTRY_FALLBACK_BAK}" "${LOADER_CONF_BAK}"' EXIT
+cp "${SYS_SYS_LINUX}" "${SYS_SYS_LINUX_BAK}"
+cp "${SYS_PXE_LINUX}" "${SYS_PXE_LINUX_BAK}"
+restore_boot_cfgs() {
+  cp "${ENTRY_PRIMARY_BAK}" "${ENTRY_PRIMARY}"
+  cp "${ENTRY_FALLBACK_BAK}" "${ENTRY_FALLBACK}"
+  cp "${LOADER_CONF_BAK}" "${LOADER_CONF}"
+  cp "${SYS_SYS_LINUX_BAK}" "${SYS_SYS_LINUX}"
+  cp "${SYS_PXE_LINUX_BAK}" "${SYS_PXE_LINUX}"
+  rm -f "${ENTRY_PRIMARY_BAK}" "${ENTRY_FALLBACK_BAK}" "${LOADER_CONF_BAK}" \
+    "${SYS_SYS_LINUX_BAK}" "${SYS_PXE_LINUX_BAK}"
+}
+trap 'restore_boot_cfgs' EXIT
 
 sed -i "s|^title .*|title ${PRIMARY_TITLE}|" "${ENTRY_PRIMARY}"
 sed -i "s|^linux .*|linux /%INSTALL_DIR%/boot/x86_64/vmlinuz-${PRIMARY_KERNEL_BASENAME}|" "${ENTRY_PRIMARY}"
 sed -i "s|^initrd .*|initrd /%INSTALL_DIR%/boot/x86_64/initramfs-${PRIMARY_KERNEL_BASENAME}.img|" "${ENTRY_PRIMARY}"
 
-# Track-specific boot menu behavior:
-# - zen/lts: single deterministic entry
-# - cachy: keep LTS fallback entry
-if [[ "${track}" == "zen" || "${track}" == "lts" ]]; then
+# BIOS Syslinux paths + titles (mirror systemd-boot selections)
+sed -i "s|^MENU LABEL .*|MENU LABEL ${PRIMARY_TITLE} (%ARCH%, BIOS)|" "${SYS_SYS_LINUX}"
+sed -i "s|^LINUX .*|LINUX /%INSTALL_DIR%/boot/%ARCH%/vmlinuz-${PRIMARY_KERNEL_BASENAME}|" "${SYS_SYS_LINUX}"
+sed -i "s|^INITRD .*|INITRD /%INSTALL_DIR%/boot/%ARCH%/initramfs-${PRIMARY_KERNEL_BASENAME}.img|" "${SYS_SYS_LINUX}"
+sed -i "s|vmlinuz-linux-zen|vmlinuz-${PRIMARY_KERNEL_BASENAME}|g" "${SYS_PXE_LINUX}"
+sed -i "s|initramfs-linux-zen.img|initramfs-${PRIMARY_KERNEL_BASENAME}.img|g" "${SYS_PXE_LINUX}"
+
+# Track-specific boot menu:
+# - zen: primary linux-zen plus linux-lts fallback (UEFI + BIOS)
+# - lts: linux-lts only (no duplicate fallback entry)
+if [[ "${track}" == "lts" ]]; then
   rm -f "${ENTRY_FALLBACK}"
 fi
 
-if [[ "${track}" == "cachy" ]]; then
-  if ! rg -n "\[cachyos\]" "${PROFILE_DIR}/pacman.conf" >/dev/null 2>&1; then
-    cat >> "${PROFILE_DIR}/pacman.conf" <<'EOF'
+if [[ "${track}" == "zen" ]]; then
+  cat >> "${SYS_SYS_LINUX}" <<'EOS'
 
-[cachyos]
-# CI/non-interactive build safety for this optional track.
-SigLevel = Never
-Server = https://mirror.cachyos.org/repo/$arch/$repo
-EOF
-  fi
+LABEL novaarch-lts
+TEXT HELP
+Boot NovaArch linux-lts (BIOS fallback).
+ENDTEXT
+MENU LABEL NovaArch Live (x86_64, stable fallback - lts) (%ARCH%, BIOS)
+LINUX /%INSTALL_DIR%/boot/%ARCH%/vmlinuz-linux-lts
+INITRD /%INSTALL_DIR%/boot/%ARCH%/initramfs-linux-lts.img
+APPEND archisobasedir=%INSTALL_DIR% archisolabel=%ARCHISO_LABEL% copytoram=y systemd.gpt_auto=no
+EOS
 fi
 
 # -----------------------------

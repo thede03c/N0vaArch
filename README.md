@@ -75,7 +75,7 @@ sudo ./scripts/build-iso.sh
 - Desktop stack is lightweight and modern (`Hyprland`).
 - Includes practical performance tuning via `sysctl` defaults and reduced package surface.
 - For your CPU/GPU combo, `linux-zen` is the safest high-performance baseline.
-- Optional `KERNEL_TRACK="cachy"` uses Cachy kernel packages for aggressive performance testing.
+- `KERNEL_TRACK="zen"` (default) ships `linux-zen` plus optional `linux-lts` bootloader entries on one ISO.
 - Includes explicit firmware coverage (`linux-firmware-amdgpu` and `linux-firmware-qcom`).
 - Adds extra firmware coverage (`linux-firmware-broadcom`) plus Intel graphics Vulkan path.
 - Includes `linux-lts` fallback kernel for stability recovery paths.

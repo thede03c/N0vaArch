@@ -8,6 +8,7 @@ iso_version="${ISO_VERSION}"
 install_dir="${INSTALL_DIR}"
 buildmodes=("iso")
 bootmodes=(
+  "bios.syslinux"
   "uefi.systemd-boot"
 )
 arch="x86_64"
