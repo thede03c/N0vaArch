@@ -19,9 +19,9 @@ show_error() {
   fi
 }
 
-connectivity="$(nmcli -t -f CONNECTIVITY general 2>/dev/null || echo "none")"
-if [[ "${connectivity}" == "none" || "${connectivity}" == "unknown" ]]; then
-  show_error "No network detected. Please connect to Wi-Fi or Ethernet, then try launching the installer again."
+connectivity="$(nmcli -t -f CONNECTIVITY general 2>/dev/null | head -n1 || echo "unknown")"
+if [[ "${connectivity}" == "none" ]]; then
+  show_error "No network detected (NetworkManager reports '${connectivity}'). Connect to Wi‑Fi or Ethernet, then try again."
   exit 1
 fi
 
@@ -36,14 +36,8 @@ choices_file="/tmp/novaarch-installer/choices.env"
 if [[ -f "${choices_file}" ]]; then
   # shellcheck source=/dev/null
   source "${choices_file}"
-  summary="Browser: ${BROWSER_CHOICES:-none}\nVPN: ${VPN_CHOICES:-none}\nApps: ${APP_CHOICES:-none}"
-  if command -v zenity >/dev/null 2>&1; then
-    if ! zenity --question --title="Confirm install selections" --text="Selected options:\n\n${summary}\n\nContinue to installer?"; then
-      exit 0
-    fi
-  else
-    echo -e "Selected options:\n${summary}"
-  fi
+  summary="$(printf 'Optional install extras — Browser: %s | VPN: %s | Apps: %s' "${BROWSER_CHOICES:-none}" "${VPN_CHOICES:-none}" "${APP_CHOICES:-none}")"
+  command -v notify-send >/dev/null 2>&1 && notify-send "NovaArch" "${summary}" || true
 fi
 
 # Calamares is not shipped in vanilla Arch repos; keep this block so custom ISOs can drop a calamares.pkg into a local repo.
@@ -57,9 +51,26 @@ if [[ -x /usr/bin/calamares ]] && [[ -f /etc/calamares/settings.conf ]]; then
   exec /usr/bin/calamares
 fi
 
-show_info "$(printf '%s\n%s\n%s' \
-  "NovaArch uses Arch's guided installer (archinstall) inside a terminal window." \
-  "You will choose language, disks, bootloader, timezone, hostname, username, and password there — after Wi-Fi works." \
+show_info "$(printf '%s\n%s\n%s\n%s' \
+  "NovaArch uses Arch's guided installer (archinstall) in a terminal window." \
+  "You will choose language, disks, bootloader, timezone, hostname, username, and password there." \
+  "Super + [ and Super + ] switch which monitor has keyboard focus; Super+Shift+[ / ] moves the workspace to another screen." \
   "Tip: do not reuse the disposable live login for your installed account password.")"
 
-exec kitty --title "NovaArch Install (archinstall)" sh -lc "sudo archinstall"
+readonly term_title="NovaArch Install (archinstall)"
+readonly inner='status=0; sudo -E archinstall || status=$?;
+  if [[ "$status" -ne 0 ]]; then
+    printf "\narchinstall exited with status %s. See above for errors.\n" "$status" >&2
+  fi
+  printf "\nPress Enter to close this window...\n"; read -r _'
+
+if command -v kitty >/dev/null 2>&1; then
+  exec kitty --title "${term_title}" sh -lc "${inner}"
+elif command -v konsole >/dev/null 2>&1; then
+  exec konsole --title "${term_title}" -e sh -lc "${inner}"
+elif command -v xterm >/dev/null 2>&1; then
+  exec xterm -title "${term_title}" -e sh -lc "${inner}"
+else
+  show_error "No terminal emulator found (kitty, konsole, xterm)."
+  exit 1
+fi

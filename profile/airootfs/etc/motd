@@ -4,8 +4,12 @@ Gaming + daily-use focused Arch-based custom ISO.
 
 Live boots as user live with no tty login prompt — use NovaArch Welcome → Launch Installer (archinstall wizard) after Wi‑Fi works.
 
+Multi-monitor (Hyprland): Super+[ / Super+] = focus prev/next screen; Super+Shift+[ / ] moves the workspace.
+
+GTK theme (no gsettings on Hyprland): run lxappearance or Welcome → Theme tab.
+
 Useful commands:
-  archinstall           (alternate installer,TUI)
+  archinstall / novaarch-launch-installer
   novaarch-create-user (optional helper)
   novaarch-web-wallpaper
   nmtui

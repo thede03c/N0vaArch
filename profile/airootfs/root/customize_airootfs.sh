@@ -25,9 +25,10 @@ fi
 
 install -d -m0750 /etc/sudoers.d
 cat >/etc/sudoers.d/05-novaarch-live-calamares <<'SUDO_EOF'
-# Live ISO only — removed during Calamares post-install cleanup.
+# Live ISO only — ephemeral user; removed during Calamares post-install cleanup.
+# archinstall/GUI installers need NOPASSWD here: wheel sudo still prompts, and empty passwd breaks non-interactive sudo.
 Defaults env_keep += "LANG LC_ALL DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE XDG_SESSION_CLASS XDG_CURRENT_DESKTOP HOME USER QT_QPA_PLATFORMTHEME GDK_BACKEND QT_QPA_PLATFORM"
-live ALL=(root) NOPASSWD:SETENV: /usr/bin/calamares
+live ALL=(ALL) NOPASSWD: ALL
 SUDO_EOF
 chmod 0440 /etc/sudoers.d/05-novaarch-live-calamares
 

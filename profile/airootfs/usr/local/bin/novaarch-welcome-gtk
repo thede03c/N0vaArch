@@ -62,6 +62,15 @@ class NovaWelcome(Gtk.Window):
         live_hint.set_line_wrap(True)
         root.pack_start(live_hint, False, False, 0)
 
+        tips = Gtk.Label(
+            label="Two monitors? Super+[ / Super+] switches focus between screens; Super+Shift+[ / Super+Shift+] moves the current workspace. "
+                  "GTK look: Appearance → lxappearance (gsettings is for GNOME only, not Hyprland).",
+            selectable=True,
+        )
+        tips.set_halign(Gtk.Align.START)
+        tips.set_line_wrap(True)
+        root.pack_start(tips, False, False, 0)
+
         notebook = Gtk.Notebook()
         root.pack_start(notebook, True, True, 0)
 
@@ -253,7 +262,8 @@ class NovaWelcome(Gtk.Window):
             ).strip()
         except Exception:
             return False
-        return output not in ("none", "unknown", "")
+        o = output.strip().lower()
+        return bool(o) and o != "none"
 
     def launch_installer(self, _button):
         if not self._is_connected():

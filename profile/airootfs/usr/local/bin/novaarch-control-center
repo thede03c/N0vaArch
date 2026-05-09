@@ -28,6 +28,8 @@ Countdown Timer
 Open Trash
 App Shortcuts and Pinning
 Bluetooth Manager
+Display · focus next monitor
+Display · move workspace to next monitor
 Network TUI
 Process Manager (GUI)
 Process Manager (CLI)
@@ -85,6 +87,16 @@ case "${choice}" in
     ;;
   "Bluetooth Manager")
     exec blueman-manager
+    ;;
+  "Display · focus next monitor")
+    hyprctl dispatch focusmonitor +1 >/dev/null 2>&1 || true
+    command -v notify-send >/dev/null 2>&1 && notify-send "NovaArch" "Focused next monitor (Super+] or Super+Shift+Tab)"
+    exit 0
+    ;;
+  "Display · move workspace to next monitor")
+    hyprctl dispatch movecurrentworkspacetomonitor +1 >/dev/null 2>&1 || true
+    command -v notify-send >/dev/null 2>&1 && notify-send "NovaArch" "Moved workspace — Super+Shift+]"
+    exit 0
     ;;
   "Network TUI")
     exec kitty --title "Network Manager" nmtui
