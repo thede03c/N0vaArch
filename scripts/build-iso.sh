@@ -18,14 +18,20 @@ case "${track}" in
   zen)
     KERNEL_PACKAGE="linux-zen"
     KERNEL_HEADERS_PACKAGE="linux-zen-headers"
+    PRIMARY_KERNEL_BASENAME="linux-zen"
+    PRIMARY_TITLE="NovaArch Live (x86_64, gaming daily - zen)"
     ;;
   cachy)
     KERNEL_PACKAGE="linux-cachyos"
     KERNEL_HEADERS_PACKAGE="linux-cachyos-headers"
+    PRIMARY_KERNEL_BASENAME="linux-cachyos"
+    PRIMARY_TITLE="NovaArch Live (x86_64, gaming daily - cachy)"
     ;;
   lts)
     KERNEL_PACKAGE="linux-lts"
     KERNEL_HEADERS_PACKAGE="linux-lts-headers"
+    PRIMARY_KERNEL_BASENAME="linux-lts"
+    PRIMARY_TITLE="NovaArch Live (x86_64, stability - lts)"
     ;;
   *)
     echo "Unsupported KERNEL_TRACK '${track}'. Use: zen, cachy, lts"
@@ -33,7 +39,7 @@ case "${track}" in
     ;;
 esac
 
-export KERNEL_PACKAGE KERNEL_HEADERS_PACKAGE
+export KERNEL_PACKAGE KERNEL_HEADERS_PACKAGE PRIMARY_KERNEL_BASENAME
 
 # -----------------------------
 # Docker fallback
@@ -95,6 +101,19 @@ fi
 cp "${PROFILE_DIR}/packages.x86_64.in" "${PROFILE_DIR}/packages.x86_64"
 sed -i "s|@KERNEL_PACKAGE@|${KERNEL_PACKAGE}|g" "${PROFILE_DIR}/packages.x86_64"
 sed -i "s|@KERNEL_HEADERS_PACKAGE@|${KERNEL_HEADERS_PACKAGE}|g" "${PROFILE_DIR}/packages.x86_64"
+
+# Keep boot entry kernel paths aligned with selected track.
+ENTRY_PRIMARY="${PROFILE_DIR}/efiboot/loader/entries/01-novaarch-linux.conf"
+ENTRY_FALLBACK="${PROFILE_DIR}/efiboot/loader/entries/02-novaarch-linux-lts.conf"
+ENTRY_PRIMARY_BAK="$(mktemp)"
+ENTRY_FALLBACK_BAK="$(mktemp)"
+cp "${ENTRY_PRIMARY}" "${ENTRY_PRIMARY_BAK}"
+cp "${ENTRY_FALLBACK}" "${ENTRY_FALLBACK_BAK}"
+trap 'cp "${ENTRY_PRIMARY_BAK}" "${ENTRY_PRIMARY}"; cp "${ENTRY_FALLBACK_BAK}" "${ENTRY_FALLBACK}"; rm -f "${ENTRY_PRIMARY_BAK}" "${ENTRY_FALLBACK_BAK}"' EXIT
+
+sed -i "s|^title .*|title ${PRIMARY_TITLE}|" "${ENTRY_PRIMARY}"
+sed -i "s|^linux .*|linux /%INSTALL_DIR%/boot/x86_64/vmlinuz-${PRIMARY_KERNEL_BASENAME#linux-}|" "${ENTRY_PRIMARY}"
+sed -i "s|^initrd .*|initrd /%INSTALL_DIR%/boot/x86_64/initramfs-${PRIMARY_KERNEL_BASENAME#linux-}.img|" "${ENTRY_PRIMARY}"
 
 if [[ "${track}" == "lts" ]]; then
   sed -i '/^linux-lts$/d' "${PROFILE_DIR}/packages.x86_64"

@@ -3,25 +3,23 @@
 name: Build ISO
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      kernel_track:
-        description: "Kernel track (zen, lts, cachy)"
-        required: true
-        default: "zen"
-        type: choice
-        options:
-          - zen
-          - lts
-          - cachy
 
 jobs:
   iso:
+    name: Build ISO (${{ matrix.kernel_track }} kernel)
     runs-on: ubuntu-latest
     timeout-minutes: 120
     container:
       image: archlinux:latest
       options: --privileged --user root
+    strategy:
+      fail-fast: false
+      matrix:
+        kernel_track: [zen, lts, cachy]
 
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +31,7 @@ jobs:
         run: chmod +x ./scripts/*.sh
 
       - name: Build ISO
-        run: KERNEL_TRACK='${{ inputs.kernel_track }}' bash ./scripts/build-iso.sh --native
+        run: KERNEL_TRACK='${{ matrix.kernel_track }}' bash ./scripts/build-iso.sh --native
 
       - name: Generate checksums
         run: sha256sum out/*.iso | tee out/SHA256SUMS.txt
@@ -41,8 +39,71 @@ jobs:
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
         with:
-          name: novaarch-iso
+          name: novaarch-${{ matrix.kernel_track }}-kernel
           path: |
             out/*.iso
             out/SHA256SUMS.txt
           if-no-files-found: error
+
+  smoke-boot:
+    name: QEMU Smoke Boot (${{ matrix.kernel_track }} kernel)
+    runs-on: ubuntu-latest
+    needs: iso
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        kernel_track: [zen, lts, cachy]
+
+    steps:
+      - name: Download ISO artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: novaarch-${{ matrix.kernel_track }}-kernel
+          path: out
+
+      - name: Install QEMU tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 xorriso ovmf
+
+      - name: Extract boot files and boot in QEMU
+        run: |
+          set -euo pipefail
+          ISO_PATH="$(ls out/*.iso | head -n1)"
+          case "${{ matrix.kernel_track }}" in
+            zen) KERNEL_BASENAME="zen" ;;
+            lts) KERNEL_BASENAME="lts" ;;
+            cachy) KERNEL_BASENAME="cachyos" ;;
+            *) echo "Unsupported kernel track"; exit 1 ;;
+          esac
+          mkdir -p qemu-extract
+          xorriso -osirrox on -indev "$ISO_PATH" \
+            -extract "/novaarch/boot/x86_64/vmlinuz-${KERNEL_BASENAME}" qemu-extract/vmlinuz \
+            -extract "/novaarch/boot/x86_64/initramfs-${KERNEL_BASENAME}.img" qemu-extract/initramfs.img
+
+          ISO_LABEL="$(xorriso -indev "$ISO_PATH" -pvd_info 2>/dev/null | sed -n 's/^Volume id *: *//p' | tail -n1 | tr -d '\r')"
+          if [ -z "$ISO_LABEL" ]; then
+            echo "Failed to detect ISO volume label"
+            exit 1
+          fi
+          echo "Detected ISO label: $ISO_LABEL"
+
+          # Smoke boot: direct kernel+initramfs boot with serial console enabled
+          # so CI can assert we reached late boot targets.
+          timeout 240s qemu-system-x86_64 \
+            -m 4096 -smp 2 \
+            -cdrom "$ISO_PATH" \
+            -kernel qemu-extract/vmlinuz \
+            -initrd qemu-extract/initramfs.img \
+            -append "archisobasedir=novaarch archisolabel=$ISO_LABEL systemd.gpt_auto=no console=ttyS0,115200 loglevel=3" \
+            -nographic -no-reboot \
+            | tee qemu-serial.log || true
+
+          if grep -E "Reached target (Graphical Interface|Multi-User System|Login Prompts)|Started Getty on tty1|greetd" qemu-serial.log; then
+            echo "QEMU smoke boot passed"
+            exit 0
+          fi
+
+          echo "QEMU smoke boot did not reach expected targets"
+          exit 1
