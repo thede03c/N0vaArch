@@ -2,9 +2,11 @@ NovaArch Live Environment
 -------------------------
 Gaming + daily-use focused Arch-based custom ISO.
 
-Useful first commands:
-  archinstall
-  novaarch-create-user
+Live boots as user live with no tty login prompt — use NovaArch Welcome to launch Calamares for your account and disks.
+
+Useful commands:
+  archinstall           (alternate installer,TUI)
+  novaarch-create-user (optional helper)
   novaarch-web-wallpaper
   nmtui
   steam

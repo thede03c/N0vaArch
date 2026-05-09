@@ -1,6 +1,15 @@
 [terminal]
 vt = 1
 
+# Live ISO: go straight into Hyprland (no TUIs asking for credentials).
+# Your real username / password / timezone are set only in Calamares after Wi‑Fi works.
+#
+# systemd-logind assigns the seat once this session starts successfully.
+#
+[initial_session]
+command = "dbus-run-session -- Hyprland"
+user = "live"
+
 [default_session]
-command = "tuigreet --time --remember --cmd Hyprland"
-user = "greeter"
+command = "dbus-run-session -- Hyprland"
+user = "live"

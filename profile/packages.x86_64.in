@@ -23,6 +23,7 @@ bluez-utils
 blueman
 iwd
 archinstall
+calamares
 git
 curl
 wget

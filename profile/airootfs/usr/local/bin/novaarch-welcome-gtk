@@ -54,6 +54,14 @@ class NovaWelcome(Gtk.Window):
         subtitle.set_halign(Gtk.Align.START)
         root.pack_start(subtitle, False, False, 0)
 
+        live_hint = Gtk.Label(
+            label="Live USB boots straight into Hyprland. Connect Wi-Fi, open Launch Installer, then set timezone and your real account.",
+            selectable=True,
+        )
+        live_hint.set_halign(Gtk.Align.START)
+        live_hint.set_line_wrap(True)
+        root.pack_start(live_hint, False, False, 0)
+
         notebook = Gtk.Notebook()
         root.pack_start(notebook, True, True, 0)
 

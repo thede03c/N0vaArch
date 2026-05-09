@@ -10,14 +10,25 @@ systemctl enable systemd-oomd
 systemctl enable fstrim.timer
 systemctl enable novaarch-plymouth-oem.service
 
-# Keep live env lean and secure; no default permanent user is created here.
-# User creation is handled by:
-# - archinstall (recommended), or
-# - novaarch-create-user helper on first boot.
-
+# Passwordless ISO user "live" — greetd autologins into Hyprland (see /etc/greetd/config.toml).
+# Final username/password/timezone/language only appear in Calamares after networking works.
 sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 sed -i 's/^#Color/Color/' /etc/pacman.conf
 sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
+
+if ! id -u live >/dev/null 2>&1; then
+  useradd -m -u 962 -g users -G wheel,video,audio,input,network,storage \
+    -s /usr/bin/fish live
+  passwd -d live
+fi
+
+install -d -m0750 /etc/sudoers.d
+cat >/etc/sudoers.d/05-novaarch-live-calamares <<'SUDO_EOF'
+# Live ISO only — removed during Calamares post-install cleanup.
+Defaults env_keep += "LANG LC_ALL DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE XDG_SESSION_CLASS XDG_CURRENT_DESKTOP HOME USER QT_QPA_PLATFORMTHEME GDK_BACKEND QT_QPA_PLATFORM"
+live ALL=(root) NOPASSWD:SETENV: /usr/bin/calamares
+SUDO_EOF
+chmod 0440 /etc/sudoers.d/05-novaarch-live-calamares
 
 mkdir -p /usr/share/novaarch
 

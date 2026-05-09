@@ -47,10 +47,14 @@ if [[ -f "${choices_file}" ]]; then
 fi
 
 if command -v calamares >/dev/null 2>&1 && [[ -f /etc/calamares/settings.conf ]]; then
-  if command -v pkexec >/dev/null 2>&1; then
-    exec pkexec calamares
+  # Live USB: elevate without an extra credential prompt (pkexec TUIs confuse people here).
+  if [[ -d /run/archiso ]] && [[ "$(id -un)" == "live" ]] && [[ "$(id -u)" -ne 0 ]]; then
+    exec sudo -E /usr/bin/calamares
   fi
-  exec calamares
+  if command -v pkexec >/dev/null 2>&1; then
+    exec pkexec /usr/bin/calamares
+  fi
+  exec /usr/bin/calamares
 fi
 
 show_info "Calamares is not fully configured in this build yet. Launching archinstall fallback."
