@@ -105,15 +105,25 @@ sed -i "s|@KERNEL_HEADERS_PACKAGE@|${KERNEL_HEADERS_PACKAGE}|g" "${PROFILE_DIR}/
 # Keep boot entry kernel paths aligned with selected track.
 ENTRY_PRIMARY="${PROFILE_DIR}/efiboot/loader/entries/01-novaarch-linux.conf"
 ENTRY_FALLBACK="${PROFILE_DIR}/efiboot/loader/entries/02-novaarch-linux-lts.conf"
+LOADER_CONF="${PROFILE_DIR}/efiboot/loader/loader.conf"
 ENTRY_PRIMARY_BAK="$(mktemp)"
 ENTRY_FALLBACK_BAK="$(mktemp)"
+LOADER_CONF_BAK="$(mktemp)"
 cp "${ENTRY_PRIMARY}" "${ENTRY_PRIMARY_BAK}"
 cp "${ENTRY_FALLBACK}" "${ENTRY_FALLBACK_BAK}"
-trap 'cp "${ENTRY_PRIMARY_BAK}" "${ENTRY_PRIMARY}"; cp "${ENTRY_FALLBACK_BAK}" "${ENTRY_FALLBACK}"; rm -f "${ENTRY_PRIMARY_BAK}" "${ENTRY_FALLBACK_BAK}"' EXIT
+cp "${LOADER_CONF}" "${LOADER_CONF_BAK}"
+trap 'cp "${ENTRY_PRIMARY_BAK}" "${ENTRY_PRIMARY}"; cp "${ENTRY_FALLBACK_BAK}" "${ENTRY_FALLBACK}"; cp "${LOADER_CONF_BAK}" "${LOADER_CONF}"; rm -f "${ENTRY_PRIMARY_BAK}" "${ENTRY_FALLBACK_BAK}" "${LOADER_CONF_BAK}"' EXIT
 
 sed -i "s|^title .*|title ${PRIMARY_TITLE}|" "${ENTRY_PRIMARY}"
 sed -i "s|^linux .*|linux /%INSTALL_DIR%/boot/x86_64/vmlinuz-${PRIMARY_KERNEL_BASENAME#linux-}|" "${ENTRY_PRIMARY}"
 sed -i "s|^initrd .*|initrd /%INSTALL_DIR%/boot/x86_64/initramfs-${PRIMARY_KERNEL_BASENAME#linux-}.img|" "${ENTRY_PRIMARY}"
+
+# Track-specific boot menu behavior:
+# - zen/lts: single deterministic entry
+# - cachy: keep LTS fallback entry
+if [[ "${track}" == "zen" || "${track}" == "lts" ]]; then
+  rm -f "${ENTRY_FALLBACK}"
+fi
 
 if [[ "${track}" == "cachy" ]]; then
   if ! rg -n "\[cachyos\]" "${PROFILE_DIR}/pacman.conf" >/dev/null 2>&1; then
