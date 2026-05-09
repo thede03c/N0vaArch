@@ -19,8 +19,11 @@ jobs:
       - name: Install build dependencies
         run: pacman -Syu --noconfirm archiso git rsync gettext ripgrep openssh sudo
 
+      - name: Fix script permissions
+        run: chmod +x ./scripts/*.sh
+
       - name: Build ISO
-        run: ./scripts/build-iso.sh --native
+        run: bash ./scripts/build-iso.sh --native
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
