@@ -61,7 +61,6 @@ qemu-full
 libvirt
 edk2-ovmf
 dnsmasq
-bridge-utils
 vde2
 virt-install
 virt-viewer

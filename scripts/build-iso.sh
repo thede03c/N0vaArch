@@ -125,7 +125,8 @@ if [[ "${track}" == "cachy" ]]; then
     cat >> "${PROFILE_DIR}/pacman.conf" <<'EOF'
 
 [cachyos]
-SigLevel = Optional TrustAll
+# CI/non-interactive build safety for this optional track.
+SigLevel = Never
 Server = https://mirror.cachyos.org/repo/$arch/$repo
 EOF
   fi
