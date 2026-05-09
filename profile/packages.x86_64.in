@@ -9,6 +9,7 @@ linux-firmware-broadcom
 linux-lts
 linux-lts-headers
 mkinitcpio
+archiso
 nano
 sudo
 networkmanager
@@ -115,6 +116,8 @@ qt5-wayland
 qt6-wayland
 pipewire
 wireplumber
+iptables
+qt6-multimedia-ffmpeg
 pipewire-alsa
 pipewire-pulse
 pipewire-jack

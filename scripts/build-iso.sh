@@ -115,11 +115,6 @@ sed -i "s|^title .*|title ${PRIMARY_TITLE}|" "${ENTRY_PRIMARY}"
 sed -i "s|^linux .*|linux /%INSTALL_DIR%/boot/x86_64/vmlinuz-${PRIMARY_KERNEL_BASENAME#linux-}|" "${ENTRY_PRIMARY}"
 sed -i "s|^initrd .*|initrd /%INSTALL_DIR%/boot/x86_64/initramfs-${PRIMARY_KERNEL_BASENAME#linux-}.img|" "${ENTRY_PRIMARY}"
 
-if [[ "${track}" == "lts" ]]; then
-  sed -i '/^linux-lts$/d' "${PROFILE_DIR}/packages.x86_64"
-  sed -i '/^linux-lts-headers$/d' "${PROFILE_DIR}/packages.x86_64"
-fi
-
 if [[ "${track}" == "cachy" ]]; then
   if ! rg -n "\[cachyos\]" "${PROFILE_DIR}/pacman.conf" >/dev/null 2>&1; then
     cat >> "${PROFILE_DIR}/pacman.conf" <<'EOF'
