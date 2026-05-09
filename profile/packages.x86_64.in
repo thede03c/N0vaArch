@@ -10,6 +10,7 @@ linux-lts
 linux-lts-headers
 mkinitcpio
 archiso
+syslinux
 nano
 sudo
 networkmanager
