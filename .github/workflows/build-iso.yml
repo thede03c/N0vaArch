@@ -72,9 +72,9 @@ jobs:
           set -euo pipefail
           ISO_PATH="$(ls out/*.iso | head -n1)"
           case "${{ matrix.kernel_track }}" in
-            zen) KERNEL_BASENAME="zen" ;;
-            lts) KERNEL_BASENAME="lts" ;;
-            cachy) KERNEL_BASENAME="cachyos" ;;
+            zen) KERNEL_BASENAME="linux-zen" ;;
+            lts) KERNEL_BASENAME="linux-lts" ;;
+            cachy) KERNEL_BASENAME="linux-cachyos" ;;
             *) echo "Unsupported kernel track"; exit 1 ;;
           esac
           mkdir -p qemu-extract
