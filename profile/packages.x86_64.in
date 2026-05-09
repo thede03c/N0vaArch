@@ -13,6 +13,7 @@ mkinitcpio-archiso
 mkinitcpio-nfs-utils
 archiso
 syslinux
+nbd
 nano
 sudo
 networkmanager
