@@ -55,7 +55,7 @@ class NovaWelcome(Gtk.Window):
         root.pack_start(subtitle, False, False, 0)
 
         live_hint = Gtk.Label(
-            label="Live USB boots straight into Hyprland. Connect Wi-Fi, open Launch Installer, then set timezone and your real account.",
+            label="Live USB boots straight into Hyprland. Connect Wi-Fi, then Launch Installer for the guided archinstall wizard (timezone, disks, username, password). Optional app bundles run first from Installer Options.",
             selectable=True,
         )
         live_hint.set_halign(Gtk.Align.START)

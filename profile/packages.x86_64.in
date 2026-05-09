@@ -23,7 +23,7 @@ bluez-utils
 blueman
 iwd
 archinstall
-calamares
+# calamares — not packaged in Arch core/extra/multilib; add from AUR into a local pacman repo if you ship a graphical installer fork.
 git
 curl
 wget

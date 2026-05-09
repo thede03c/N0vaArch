@@ -46,8 +46,8 @@ if [[ -f "${choices_file}" ]]; then
   fi
 fi
 
-if command -v calamares >/dev/null 2>&1 && [[ -f /etc/calamares/settings.conf ]]; then
-  # Live USB: elevate without an extra credential prompt (pkexec TUIs confuse people here).
+# Calamares is not shipped in vanilla Arch repos; keep this block so custom ISOs can drop a calamares.pkg into a local repo.
+if [[ -x /usr/bin/calamares ]] && [[ -f /etc/calamares/settings.conf ]]; then
   if [[ -d /run/archiso ]] && [[ "$(id -un)" == "live" ]] && [[ "$(id -u)" -ne 0 ]]; then
     exec sudo -E /usr/bin/calamares
   fi
@@ -57,5 +57,9 @@ if command -v calamares >/dev/null 2>&1 && [[ -f /etc/calamares/settings.conf ]]
   exec /usr/bin/calamares
 fi
 
-show_info "Calamares is not fully configured in this build yet. Launching archinstall fallback."
-exec kitty --title "NovaArch Install (fallback)" sh -lc "sudo archinstall"
+show_info "$(printf '%s\n%s\n%s' \
+  "NovaArch uses Arch's guided installer (archinstall) inside a terminal window." \
+  "You will choose language, disks, bootloader, timezone, hostname, username, and password there — after Wi-Fi works." \
+  "Tip: do not reuse the disposable live login for your installed account password.")"
+
+exec kitty --title "NovaArch Install (archinstall)" sh -lc "sudo archinstall"

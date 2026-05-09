@@ -7,7 +7,7 @@ NovaArch first boot notes
 - Logitech G HUB is not available on Linux; use piper/solaar/openrgb alternatives.
 - For Logitech wheel tuning, try oversteer.
 - Lian Li SL Wireless LCD Linux control may be partial/unofficial.
-- USB live session logs in automatically as live. Use Welcome -> Launch Installer (Calamares) for timezone plus your real account and password after Wi-Fi works.
+- USB live session logs in automatically as live. Use Welcome → Launch Installer (guided archinstall): connect Wi‑Fi first, then set timezone/disks/account in that wizard after it opens.
 - Choose animated scene with: novaarch-wallpaper-selector
 - Update indicator appears in Waybar as "UPD <count>".
 - NovaArch Control Center opens on login (toggle inside it if you want to disable).

@@ -2,7 +2,7 @@ NovaArch Live Environment
 -------------------------
 Gaming + daily-use focused Arch-based custom ISO.
 
-Live boots as user live with no tty login prompt — use NovaArch Welcome to launch Calamares for your account and disks.
+Live boots as user live with no tty login prompt — use NovaArch Welcome → Launch Installer (archinstall wizard) after Wi‑Fi works.
 
 Useful commands:
   archinstall           (alternate installer,TUI)
