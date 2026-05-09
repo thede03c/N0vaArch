@@ -1,0 +1,30 @@
+# Manual ISO build in GitHub Actions (Arch container + mkarchiso).
+# Artifacts can be large; free runners may run out of disk on heavy package sets.
+name: Build ISO
+
+on:
+  workflow_dispatch:
+
+jobs:
+  iso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    container:
+      image: archlinux:latest
+      options: --privileged --user root
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: pacman -Syu --noconfirm archiso git rsync gettext ripgrep openssh sudo
+
+      - name: Build ISO
+        run: ./scripts/build-iso.sh --native
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: novaarch-iso
+          path: out/*.iso
+          if-no-files-found: error

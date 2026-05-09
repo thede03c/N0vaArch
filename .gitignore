@@ -1,0 +1,9 @@
+work/
+out/
+profile/packages.x86_64
+profile/profiledef.sh
+
+# Windows / editor noise
+Thumbs.db
+Desktop.ini
+*.stackdump

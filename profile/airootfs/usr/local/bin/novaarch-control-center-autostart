@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/novaarch"
+AUTO_FILE="${STATE_DIR}/control-center-autostart"
+mkdir -p "${STATE_DIR}"
+[[ -f "${AUTO_FILE}" ]] || echo "1" > "${AUTO_FILE}"
+
+enabled="$(tr -d '\r\n' < "${AUTO_FILE}")"
+if [[ "${enabled}" != "1" ]]; then
+  exit 0
+fi
+
+sleep 3
+exec /usr/local/bin/novaarch-control-center

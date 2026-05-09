@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+show_info() {
+  local msg="$1"
+  if command -v zenity >/dev/null 2>&1; then
+    zenity --info --title="NovaArch Installer" --text="${msg}" || true
+  else
+    echo "${msg}"
+  fi
+}
+
+show_error() {
+  local msg="$1"
+  if command -v zenity >/dev/null 2>&1; then
+    zenity --error --title="NovaArch Installer" --text="${msg}" || true
+  else
+    echo "${msg}" >&2
+  fi
+}
+
+connectivity="$(nmcli -t -f CONNECTIVITY general 2>/dev/null || echo "none")"
+if [[ "${connectivity}" == "none" || "${connectivity}" == "unknown" ]]; then
+  show_error "No network detected. Please connect to Wi-Fi or Ethernet, then try launching the installer again."
+  exit 1
+fi
+
+lang_file="${XDG_CONFIG_HOME:-${HOME}/.config}/novaarch/preferred-lang"
+if [[ -f "${lang_file}" ]]; then
+  selected_lang="$(tr -d '\r\n' < "${lang_file}")"
+  [[ -n "${selected_lang}" ]] && export LANG="${selected_lang}"
+fi
+
+/usr/local/bin/novaarch-installer-options >/dev/null 2>&1 || true
+choices_file="/tmp/novaarch-installer/choices.env"
+if [[ -f "${choices_file}" ]]; then
+  # shellcheck source=/dev/null
+  source "${choices_file}"
+  summary="Browser: ${BROWSER_CHOICES:-none}\nVPN: ${VPN_CHOICES:-none}\nApps: ${APP_CHOICES:-none}"
+  if command -v zenity >/dev/null 2>&1; then
+    if ! zenity --question --title="Confirm install selections" --text="Selected options:\n\n${summary}\n\nContinue to installer?"; then
+      exit 0
+    fi
+  else
+    echo -e "Selected options:\n${summary}"
+  fi
+fi
+
+if command -v calamares >/dev/null 2>&1 && [[ -f /etc/calamares/settings.conf ]]; then
+  if command -v pkexec >/dev/null 2>&1; then
+    exec pkexec calamares
+  fi
+  exec calamares
+fi
+
+show_info "Calamares is not fully configured in this build yet. Launching archinstall fallback."
+exec kitty --title "NovaArch Install (fallback)" sh -lc "sudo archinstall"

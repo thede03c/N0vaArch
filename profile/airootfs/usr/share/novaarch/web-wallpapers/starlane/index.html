@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NovaArch Starlane</title>
+  <style>
+    html,body{margin:0;height:100%;background:#030712;overflow:hidden}
+    .sky{position:fixed;inset:0;background:linear-gradient(180deg,#060c17,#0a1326)}
+    .star{position:absolute;width:2px;height:2px;border-radius:50%;background:#b9e8ff;opacity:.7;animation:twinkle 3s ease-in-out infinite}
+    .lane{position:absolute;inset:-30% -30%;background:repeating-linear-gradient(90deg,transparent 0 44px,#2a6dff22 44px 46px);transform:perspective(700px) rotateX(70deg);animation:shift 10s linear infinite}
+    @keyframes twinkle{50%{opacity:.2;transform:scale(.7)}}
+    @keyframes shift{from{transform:perspective(700px) rotateX(70deg) translateY(0)}to{transform:perspective(700px) rotateX(70deg) translateY(80px)}}
+  </style>
+</head>
+<body>
+  <div class="sky"></div>
+  <div class="lane"></div>
+  <script>
+    for(let i=0;i<160;i++){
+      const s=document.createElement('div');
+      s.className='star';
+      s.style.left=Math.random()*100+'%';
+      s.style.top=Math.random()*100+'%';
+      s.style.animationDelay=(Math.random()*3)+'s';
+      document.body.appendChild(s);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v checkupdates >/dev/null 2>&1; then
+  echo '{"text":"UPD ?","tooltip":"Install pacman-contrib for update checks.","class":"unknown"}'
+  exit 0
+fi
+
+count="$(checkupdates 2>/dev/null | wc -l)"
+count="${count//[[:space:]]/}"
+
+if [[ -z "${count}" || "${count}" == "0" ]]; then
+  echo '{"text":"UPD 0","tooltip":"System is up to date.","class":"ok"}'
+  exit 0
+fi
+
+echo "{\"text\":\"UPD ${count}\",\"tooltip\":\"${count} package updates available. Click to update.\",\"class\":\"warn\"}"

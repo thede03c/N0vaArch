@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+  <action>
+    <icon>user-desktop</icon>
+    <name>Add to Desktop</name>
+    <submenu></submenu>
+    <unique-id>10000001-0000-0000-0000-000000000001</unique-id>
+    <command>/usr/local/bin/novaarch-add-desktop-shortcut %f</command>
+    <description>Add selected app shortcut to desktop</description>
+    <patterns>*.desktop</patterns>
+    <directories/>
+    <audio-files/>
+    <image-files/>
+    <other-files/>
+    <text-files/>
+    <video-files/>
+  </action>
+  <action>
+    <icon>emblem-favorite</icon>
+    <name>Pin to Taskbar</name>
+    <submenu></submenu>
+    <unique-id>10000001-0000-0000-0000-000000000002</unique-id>
+    <command>/usr/local/bin/novaarch-pin-taskbar-shortcut %f</command>
+    <description>Pin selected app shortcut to taskbar launcher</description>
+    <patterns>*.desktop</patterns>
+    <directories/>
+    <audio-files/>
+    <image-files/>
+    <other-files/>
+    <text-files/>
+    <video-files/>
+  </action>
+</actions>

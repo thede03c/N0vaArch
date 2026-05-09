@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#1e2b49"/>
+      <stop offset="100%" stop-color="#090c14"/>
+    </radialGradient>
+  </defs>
+  <rect width="3840" height="2160" fill="url(#bg)"/>
+  <g opacity="0.4">
+    <path d="M900 1800L1600 560L2300 1800Z" fill="#224578"/>
+    <path d="M1400 1800L2140 720L2880 1800Z" fill="#3060a2"/>
+    <path d="M420 1800L1120 860L1820 1800Z" fill="#163a66"/>
+  </g>
+  <path d="M0 1860H3840V2160H0Z" fill="#070a11"/>
+</svg>

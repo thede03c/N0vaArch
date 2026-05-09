@@ -1,0 +1,303 @@
+#!/usr/bin/env python3
+import os
+import subprocess
+import shutil
+import gi
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+
+
+STATE_DIR = os.path.join(os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config")), "novaarch")
+AUTO_FILE = os.path.join(STATE_DIR, "welcome-autostart")
+LANG_FILE = os.path.join(STATE_DIR, "preferred-lang")
+START_ICON_FILE = os.path.join(STATE_DIR, "start-menu-icon")
+DEFAULT_ARCH_ICON_CANDIDATES = (
+    "/usr/share/icons/archlinux-icon-crystal/archlinux-logo-crystal-normal.svg",
+    "/usr/share/pixmaps/archlinux.png",
+)
+
+LANGUAGES = {
+    "English (US)": "en_US.UTF-8",
+    "Spanish": "es_ES.UTF-8",
+    "French": "fr_FR.UTF-8",
+    "German": "de_DE.UTF-8",
+}
+
+
+def run_cmd(cmd):
+    subprocess.Popen(cmd, shell=False)
+
+
+def ensure_state():
+    os.makedirs(STATE_DIR, exist_ok=True)
+    if not os.path.exists(AUTO_FILE):
+        with open(AUTO_FILE, "w", encoding="utf-8") as f:
+            f.write("1\n")
+
+
+class NovaWelcome(Gtk.Window):
+    def __init__(self):
+        super().__init__(title="Welcome to NovaArch")
+        self.set_default_size(900, 560)
+        self.set_border_width(14)
+
+        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        self.add(root)
+
+        title = Gtk.Label()
+        title.set_markup("<span size='x-large' weight='bold'>Welcome to NovaArch</span>")
+        title.set_halign(Gtk.Align.START)
+        root.pack_start(title, False, False, 0)
+
+        subtitle = Gtk.Label(label="Gaming-ready and daily-driver focused Arch experience.")
+        subtitle.set_halign(Gtk.Align.START)
+        root.pack_start(subtitle, False, False, 0)
+
+        notebook = Gtk.Notebook()
+        root.pack_start(notebook, True, True, 0)
+
+        notebook.append_page(self.make_home_tab(), Gtk.Label(label="Home"))
+        notebook.append_page(self.make_apps_tab(), Gtk.Label(label="Apps / Tweaks"))
+        notebook.append_page(self.make_look_tab(), Gtk.Label(label="Theme / Icons / Layout"))
+        notebook.append_page(self.make_system_tab(), Gtk.Label(label="System"))
+        notebook.append_page(self.make_settings_tab(), Gtk.Label(label="Settings"))
+
+    def add_button(self, box, label, callback):
+        btn = Gtk.Button(label=label)
+        btn.connect("clicked", callback)
+        btn.set_hexpand(True)
+        btn.set_halign(Gtk.Align.FILL)
+        box.pack_start(btn, False, False, 4)
+
+    def make_home_tab(self):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        box.set_border_width(8)
+        self.add_button(box, "Launch Installer", self.launch_installer)
+        self.add_button(box, "Open Control Center", lambda *_: run_cmd(["/usr/local/bin/novaarch-control-center"]))
+        self.add_button(box, "Open NovaArch Docs (website)", lambda *_: run_cmd(["xdg-open", "https://archlinux.org/"]))
+        self.add_button(box, "Launch Wallpaper Selector", lambda *_: run_cmd(["/usr/local/bin/novaarch-wallpaper-selector"]))
+        self.add_button(box, "Wallpaper Manager (default/import)", lambda *_: run_cmd(["/usr/local/bin/novaarch-wallpaper-manager"]))
+        self.add_button(box, "Create User (manual helper)", lambda *_: run_cmd(["kitty", "--title", "Create User", "sh", "-lc", "sudo novaarch-create-user"]))
+        return box
+
+    def open_system_settings(self, *_widget):
+        for exe in ("systemsettings", "systemsettings5", "lxappearance"):
+            path = shutil.which(exe)
+            if path:
+                run_cmd([path])
+                return
+        if shutil.which("pavucontrol"):
+            run_cmd(["pavucontrol"])
+            return
+        run_cmd(["/usr/local/bin/novaarch-control-center"])
+
+    def make_apps_tab(self):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        box.set_border_width(8)
+        self.add_button(box, "Install Apps", lambda *_: run_cmd(["/usr/local/bin/novaarch-app-installer"]))
+        self.add_button(box, "Open NovaArch Control Center", lambda *_: run_cmd(["/usr/local/bin/novaarch-control-center"]))
+        self.add_button(box, "Open system settings", self.open_system_settings)
+        self.add_button(box, "Game Preset Templates", lambda *_: run_cmd(["/usr/local/bin/novaarch-game-presets"]))
+        self.add_button(box, "Steam Launch Env Help", lambda *_: run_cmd(["kitty", "--title", "Steam Env", "sh", "-lc", "novaarch-steam-env; read -rp 'Press Enter...' _"]))
+        self.add_button(box, "NovaArch Tweaks Panel", lambda *_: run_cmd(["/usr/local/bin/novaarch-tweaks"]))
+        return box
+
+    def make_look_tab(self):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        box.set_border_width(8)
+        tip = Gtk.Label(
+            label="Pick a familiar starting point: taskbar transparency, GTK/LXDE appearance, and the start-menu icon.",
+            xalign=0,
+        )
+        tip.set_line_wrap(True)
+        box.pack_start(tip, False, False, 0)
+
+        self.add_button(box, "Taskbar transparency / Waybar layout", lambda *_: run_cmd(["/usr/local/bin/novaarch-ui-customizer"]))
+        self.add_button(box, "GTK / icon theme (Appearance)", lambda *_: self._spawn_appearance_tool())
+        self.add_button(box, "Use Arch logo for start menu (default)", lambda *_: self._set_start_icon_default())
+        self.add_button(box, "Choose custom start-menu icon…", lambda *_: self._pick_start_icon_custom())
+        self.add_button(box, "Apply icon and reload Waybar", lambda *_: run_cmd(["/usr/local/bin/novaarch-reload-waybar"]))
+        return box
+
+    def _spawn_appearance_tool(self):
+        lx = shutil.which("lxappearance")
+        if lx:
+            run_cmd([lx])
+            return
+        dlg = Gtk.MessageDialog(
+            transient_for=self,
+            flags=0,
+            message_type=Gtk.MessageType.INFO,
+            buttons=Gtk.ButtonsType.OK,
+            text="Appearance tool not found",
+        )
+        dlg.format_secondary_text("Install 'lxappearance-gtk3' from the repos, then use this button again.")
+        dlg.run()
+        dlg.destroy()
+
+    def _ensure_start_icon_file(self, target):
+        os.makedirs(os.path.dirname(START_ICON_FILE), exist_ok=True)
+        with open(START_ICON_FILE, "w", encoding="utf-8") as f:
+            f.write(target.strip() + "\n")
+
+    def _set_start_icon_default(self):
+        chosen = ""
+        for p in DEFAULT_ARCH_ICON_CANDIDATES:
+            if os.path.isfile(p):
+                chosen = p
+                break
+        if not chosen:
+            dlg = Gtk.MessageDialog(
+                transient_for=self,
+                flags=0,
+                message_type=Gtk.MessageType.WARNING,
+                buttons=Gtk.ButtonsType.OK,
+                text="Arch artwork not installed",
+            )
+            dlg.format_secondary_text("Install package 'archlinux-artwork'.")
+            dlg.run()
+            dlg.destroy()
+            return
+        subprocess.run(["/usr/local/bin/novaarch-apply-start-icon", chosen], check=False)
+        self._notify_icon(chosen)
+
+    def _pick_start_icon_custom(self):
+        dlg = Gtk.FileChooserDialog(
+            title="Choose SVG or PNG icon",
+            parent=self,
+            action=Gtk.FileChooserAction.OPEN,
+        )
+        dlg.add_buttons("_Cancel", Gtk.ResponseType.CANCEL, "_Open", Gtk.ResponseType.OK)
+        filt = Gtk.FileFilter()
+        filt.set_name("Images")
+        filt.add_pattern("*.svg")
+        filt.add_pattern("*.png")
+        dlg.add_filter(filt)
+        if dlg.run() == Gtk.ResponseType.OK:
+            path = dlg.get_filename()
+            dlg.destroy()
+            if path:
+                subprocess.run(["/usr/local/bin/novaarch-apply-start-icon", path], check=False)
+                self._notify_icon(path)
+        else:
+            dlg.destroy()
+
+    def _notify_icon(self, path):
+        notify = shutil.which("notify-send")
+        if notify:
+            subprocess.run([notify, "NovaArch", f"Start menu icon: {path}"], check=False)
+
+    def make_system_tab(self):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        box.set_border_width(8)
+        self.add_button(box, "Package Updates", lambda *_: run_cmd(["/usr/local/bin/novaarch-system-update"]))
+        self.add_button(box, "Richer Monitor (GPU/CPU live)", lambda *_: run_cmd(["/usr/local/bin/novaarch-monitor"]))
+        self.add_button(box, "Bluetooth Manager", lambda *_: run_cmd(["blueman-manager"]))
+        self.add_button(box, "Wi-Fi / Network Manager", lambda *_: run_cmd(["kitty", "--title", "Network", "nmtui"]))
+        self.add_button(box, "Wireless Repair", lambda *_: run_cmd(["kitty", "--title", "Wireless Repair", "sh", "-lc", "sudo novaarch-wireless-repair; read -rp 'Press Enter...' _"]))
+        return box
+
+    def make_settings_tab(self):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        box.set_border_width(8)
+
+        language_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        language_label = Gtk.Label(label="Language")
+        language_label.set_halign(Gtk.Align.START)
+        language_row.pack_start(language_label, False, False, 0)
+
+        self.language_combo = Gtk.ComboBoxText()
+        for label in LANGUAGES:
+            self.language_combo.append_text(label)
+        self.language_combo.set_active(self._initial_lang_index())
+        self.language_combo.connect("changed", self.set_language)
+        language_row.pack_start(self.language_combo, False, False, 0)
+        box.pack_start(language_row, False, False, 4)
+
+        toggle_btn = Gtk.Button(label="Toggle Welcome App Launch at Startup")
+        toggle_btn.connect("clicked", self.toggle_autostart)
+        box.pack_start(toggle_btn, False, False, 4)
+
+        self.status = Gtk.Label()
+        self.status.set_halign(Gtk.Align.START)
+        box.pack_start(self.status, False, False, 2)
+        self.refresh_status()
+
+        self.add_button(box, "Open ~/.config", lambda *_: run_cmd(["thunar", os.path.expanduser("~/.config")]))
+        return box
+
+    def _initial_lang_index(self):
+        if not os.path.exists(LANG_FILE):
+            return 0
+        with open(LANG_FILE, "r", encoding="utf-8") as f:
+            current_lang = f.read().strip()
+        for idx, label in enumerate(LANGUAGES):
+            if LANGUAGES[label] == current_lang:
+                return idx
+        return 0
+
+    def _is_connected(self):
+        try:
+            output = subprocess.check_output(
+                ["nmcli", "-t", "-f", "CONNECTIVITY", "general"],
+                text=True,
+            ).strip()
+        except Exception:
+            return False
+        return output not in ("none", "unknown", "")
+
+    def launch_installer(self, _button):
+        if not self._is_connected():
+            dialog = Gtk.MessageDialog(
+                transient_for=self,
+                flags=0,
+                message_type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.OK,
+                text="No network detected",
+            )
+            dialog.format_secondary_text("Please connect to Wi-Fi or Ethernet, then try launching the installer again.")
+            dialog.run()
+            dialog.destroy()
+            return
+        run_cmd(["/usr/local/bin/novaarch-launch-installer"])
+
+    def refresh_status(self):
+        value = "0"
+        if os.path.exists(AUTO_FILE):
+            with open(AUTO_FILE, "r", encoding="utf-8") as f:
+                value = f.read().strip() or "0"
+        self.status.set_text(f"Welcome autostart: {'Enabled' if value == '1' else 'Disabled'}")
+
+    def toggle_autostart(self, _button):
+        ensure_state()
+        current = "0"
+        if os.path.exists(AUTO_FILE):
+            with open(AUTO_FILE, "r", encoding="utf-8") as f:
+                current = f.read().strip() or "0"
+        new_value = "0" if current == "1" else "1"
+        with open(AUTO_FILE, "w", encoding="utf-8") as f:
+            f.write(new_value + "\n")
+        self.refresh_status()
+
+    def set_language(self, _combo):
+        ensure_state()
+        selected = self.language_combo.get_active_text()
+        if selected is None:
+            return
+        lang_value = LANGUAGES.get(selected, "en_US.UTF-8")
+        with open(LANG_FILE, "w", encoding="utf-8") as f:
+            f.write(lang_value + "\n")
+        os.environ["LANG"] = lang_value
+
+
+def main():
+    ensure_state()
+    win = NovaWelcome()
+    win.connect("destroy", Gtk.main_quit)
+    win.show_all()
+    Gtk.main()
+
+
+if __name__ == "__main__":
+    main()

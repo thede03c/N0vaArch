@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+exec kitty --title "NovaArch Live Monitor" sh -lc '
+while true; do
+  clear
+  echo "NovaArch Hardware Monitor"
+  echo "========================="
+  echo
+  date
+  echo
+  echo "-- CPU / Memory --"
+  if command -v btop >/dev/null 2>&1; then
+    echo "Tip: run btop for full dashboard."
+  fi
+  uptime
+  free -h | sed -n "1,2p"
+  echo
+  echo "-- AMD GPU (amdgpu) --"
+  base="/sys/class/drm/card0/device"
+  if [[ -d "${base}" ]]; then
+    [[ -f "${base}/gpu_busy_percent" ]] && echo "GPU Usage: $(<"${base}/gpu_busy_percent")%"
+    [[ -f "${base}/mem_info_vram_used" ]] && echo "VRAM Used: $(( $(<"${base}/mem_info_vram_used") / 1024 / 1024 )) MiB"
+    [[ -f "${base}/pp_dpm_sclk" ]] && echo "SCLK: $(grep "*" "${base}/pp_dpm_sclk" | xargs)"
+    [[ -f "${base}/pp_dpm_mclk" ]] && echo "MCLK: $(grep "*" "${base}/pp_dpm_mclk" | xargs)"
+  else
+    echo "No amdgpu sysfs path found."
+  fi
+  if command -v sensors >/dev/null 2>&1; then
+    echo
+    echo "-- Temperatures / Power --"
+    sensors | sed -n "1,40p"
+  fi
+  echo
+  echo "Press Ctrl+C to close."
+  sleep 2
+done
+'

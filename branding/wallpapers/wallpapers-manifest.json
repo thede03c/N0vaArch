@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "items": [
+    { "file": "wallpaper-1.svg", "tags": ["abstract", "minimal"] },
+    { "file": "wallpaper-2.svg", "tags": ["abstract", "neon"] },
+    { "file": "wallpaper-3.svg", "tags": ["earth", "abstract"] },
+    { "file": "wallpaper-4.svg", "tags": ["city", "neon"] },
+    { "file": "wallpaper-5.svg", "tags": ["lifestyle", "abstract"] },
+    { "file": "wallpaper-6.svg", "tags": ["space", "abstract"] },
+    { "file": "wallpaper-7.svg", "tags": ["abstract", "gradient"] },
+    { "file": "wallpaper-8.svg", "tags": ["earth", "gradient"] },
+    { "file": "wallpaper-9.svg", "tags": ["minimal", "abstract"] },
+    { "file": "wallpaper-10.svg", "tags": ["neon", "grid"] },
+    { "file": "wallpaper-11.svg", "tags": ["abstract", "neon", "city"] },
+    { "file": "wallpaper-12.svg", "tags": ["abstract", "neon", "night"] },
+    { "file": "wallpaper-13.svg", "tags": ["neon", "abstract", "grid"] },
+    { "file": "wallpaper-14.svg", "tags": ["abstract", "lifestyle", "night"] },
+    { "file": "wallpaper-15.svg", "tags": ["city", "neon", "night"] },
+    { "file": "wallpaper-16.svg", "tags": ["ocean", "abstract", "neon"] }
+  ]
+}

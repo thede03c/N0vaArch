@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+pinned_dir="${HOME}/.local/share/novaarch/pinned-apps"
+mkdir -p "${pinned_dir}"
+
+selection="$(
+  rg --files "${pinned_dir}" -g "*.desktop" \
+    | sed 's|.*/||' \
+    | sort \
+    | wofi --dmenu --prompt "Pinned Apps"
+)"
+[[ -n "${selection:-}" ]] || exit 0
+
+desktop_id="${selection}"
+exec gtk-launch "${desktop_id}" >/dev/null 2>&1

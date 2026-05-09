@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+style="${HOME}/.config/waybar/style.css"
+[[ -f "${style}" ]] || { echo "Waybar style not found."; exit 1; }
+
+choice="$(cat <<'EOF' | wofi --dmenu --prompt 'NovaArch UI Style'
+Transparent Taskbar
+Solid Taskbar
+Semi Transparent Taskbar
+Reload Waybar
+EOF
+)"
+
+case "${choice}" in
+  "Transparent Taskbar")
+    sed -i 's/background: rgba([^)]*);/background: rgba(17, 19, 24, 0.35);/' "${style}"
+    ;;
+  "Solid Taskbar")
+    sed -i 's/background: rgba([^)]*);/background: rgba(17, 19, 24, 1.0);/' "${style}"
+    ;;
+  "Semi Transparent Taskbar")
+    sed -i 's/background: rgba([^)]*);/background: rgba(17, 19, 24, 0.88);/' "${style}"
+    ;;
+  "Reload Waybar")
+    ;;
+  *)
+    exit 0
+    ;;
+esac
+
+pkill waybar >/dev/null 2>&1 || true
+waybar >/dev/null 2>&1 &

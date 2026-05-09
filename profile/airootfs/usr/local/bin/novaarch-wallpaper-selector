@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="/usr/share/novaarch/web-wallpapers"
+
+if [[ ! -d "${BASE}" ]]; then
+  echo "Animated wallpaper directory not found at ${BASE}."
+  exit 1
+fi
+
+if [[ -n "${NOVAARCH_WEB_WALL_FILTER:-}" ]]; then
+  exec /usr/local/bin/novaarch-web-wallpaper --select --tag "${NOVAARCH_WEB_WALL_FILTER}" "$@"
+fi
+
+pick_tag_menu() {
+  if ! command -v wofi >/dev/null 2>&1; then
+    echo ""
+    return
+  fi
+  local listing
+  listing="$(
+python3 - "$BASE" <<'PY'
+import json, pathlib, sys
+base = pathlib.Path(sys.argv[1])
+tags = set()
+for meta in base.glob("*/meta.json"):
+    try:
+        data = json.loads(meta.read_text(encoding="utf-8"))
+        for t in data.get("tags") or []:
+            tags.add(str(t))
+    except Exception:
+        pass
+for t in sorted(tags):
+    print(t)
+PY
+)"
+  if [[ -z "${listing}" ]]; then
+    echo ""
+    return
+  fi
+  {
+    printf '%s\n' "all"
+    printf '%s\n' "${listing}"
+  } | wofi --dmenu --insensitive --prompt "Filter wallpaper tag (or all)"
+}
+
+tag="$(pick_tag_menu)"
+[[ "${tag}" == "all" ]] && tag=""
+[[ -n "${tag}" ]] || exec /usr/local/bin/novaarch-web-wallpaper --select "$@"
+
+exec /usr/local/bin/novaarch-web-wallpaper --select --tag "${tag}" "$@"

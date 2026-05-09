@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v wofi >/dev/null 2>&1; then
+  echo "wofi is required."
+  exit 1
+fi
+
+if ! command -v kitty >/dev/null 2>&1; then
+  echo "kitty is required."
+  exit 1
+fi
+
+choice="$(
+cat <<'EOF' | wofi --dmenu --prompt 'NovaArch Optional Bundles'
+Peripheral RGB / Device Control
+Virtualization Host Tools
+Privacy Browser Bundle
+Install All Optional Bundles
+EOF
+)"
+
+[[ -n "${choice:-}" ]] || exit 0
+
+pkgs=""
+case "${choice}" in
+  "Peripheral RGB / Device Control")
+    pkgs="openrgb solaar piper liquidctl"
+    ;;
+  "Virtualization Host Tools")
+    pkgs="virtualbox virtualbox-host-dkms dkms"
+    ;;
+  "Privacy Browser Bundle")
+    pkgs="torbrowser-launcher"
+    ;;
+  "Install All Optional Bundles")
+    pkgs="openrgb solaar piper liquidctl virtualbox virtualbox-host-dkms dkms torbrowser-launcher"
+    ;;
+  *)
+    exit 0
+    ;;
+esac
+
+kitty --title "NovaArch Optional Bundles" sh -lc "
+  echo 'Installing optional packages...'
+  sudo pacman -S --needed ${pkgs}
+  echo
+  echo 'Press Enter to close...'
+  read -r _
+"

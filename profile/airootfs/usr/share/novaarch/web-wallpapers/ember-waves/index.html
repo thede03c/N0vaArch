@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaArch Ember Waves</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #0c0f14; }
+    canvas { width: 100vw; height: 100vh; display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    const c = document.getElementById("c");
+    const x = c.getContext("2d");
+    function size() {
+      c.width = innerWidth * devicePixelRatio;
+      c.height = innerHeight * devicePixelRatio;
+      x.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+    addEventListener("resize", size); size();
+    let t = 0;
+    function wave(y0, amp, freq, speed, col) {
+      x.beginPath();
+      for (let i = 0; i <= innerWidth; i += 6) {
+        const y = y0 + Math.sin(i * freq + t * speed) * amp;
+        i ? x.lineTo(i, y) : x.moveTo(i, y);
+      }
+      x.strokeStyle = col;
+      x.lineWidth = 18;
+      x.stroke();
+    }
+    function frame() {
+      t += 0.014;
+      x.fillStyle = "#0c0f14";
+      x.fillRect(0, 0, innerWidth, innerHeight);
+      wave(innerHeight * 0.62, 56, 0.010, 1.4, "rgba(214,63,63,0.35)");
+      wave(innerHeight * 0.56, 50, 0.012, 1.9, "rgba(255,120,120,0.20)");
+      wave(innerHeight * 0.50, 42, 0.009, 1.2, "rgba(120,140,255,0.16)");
+      requestAnimationFrame(frame);
+    }
+    frame();
+  </script>
+</body>
+</html>

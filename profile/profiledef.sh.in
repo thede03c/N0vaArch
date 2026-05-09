@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+iso_name="${ISO_NAME}"
+iso_label="${ISO_LABEL}"
+iso_publisher="${ISO_PUBLISHER}"
+iso_application="${ISO_APPLICATION}"
+iso_version="${ISO_VERSION}"
+install_dir="${INSTALL_DIR}"
+buildmodes=("iso")
+bootmodes=(
+  "uefi.systemd-boot"
+)
+arch="x86_64"
+pacman_conf="pacman.conf"
+airootfs_image_type="squashfs"
+airootfs_image_tool_options=("-comp" "xz" "-Xbcj" "x86")
+file_permissions=(
+  ["/etc/shadow"]="0:0:400"
+  ["/root"]="0:0:750"
+  ["/root/customize_airootfs.sh"]="0:0:755"
+  ["/usr/local/bin/firstboot-message"]="0:0:755"
+  ["/usr/local/bin/novaarch-create-user"]="0:0:755"
+  ["/usr/local/bin/novaarch-web-wallpaper"]="0:0:755"
+)

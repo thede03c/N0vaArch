@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+src="${1:?Usage: novaarch-apply-start-icon /absolute-or-relative-path-to-icon}"
+
+[[ -f "${src}" ]] || { printf '%s not found.\n' "${src}" >&2; exit 1; }
+
+STYLE="${HOME}/.config/waybar/style.css"
+STATE_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/novaarch"
+ICON_RECORD="${STATE_DIR}/start-menu-icon"
+
+dest_dir="${HOME}/.local/share/novaarch/waybar"
+mkdir -p "${dest_dir}" "${STATE_DIR}"
+
+ext="${src##*.}"
+[[ "${ext}" == "${src}" ]] && ext="png"
+basename="launcher-icon.${ext}"
+cp -f "${src}" "${dest_dir}/${basename}"
+printf '%s\n' "$(readlink -f "${dest_dir}/${basename}" 2>/dev/null || realpath "${dest_dir}/${basename}" 2>/dev/null || echo "${dest_dir}/${basename}")" >"${ICON_RECORD}"
+
+marker="novaarch-waybar-bg"
+
+if [[ ! -f "${STYLE}" ]]; then
+  printf 'Waybar style not found at %s.\n' "${STYLE}" >&2
+  exit 1
+fi
+
+rel="../../.local/share/novaarch/waybar/${basename}"
+replacement='#custom-start-menu { color: transparent; font-size: 1px; min-width: 22px; min-height: 22px; padding: 0 6px; background: no-repeat center; background-size: 20px 20px; background-image: url("'"${rel}"'"); } /* '"${marker}"' */'
+
+python3 - "${STYLE}" "${marker}" "${replacement}" <<'PY'
+import pathlib, sys
+
+path = pathlib.Path(sys.argv[1])
+needle = sys.argv[2]
+line_replace = sys.argv[3]
+
+text = path.read_text(encoding="utf-8", errors="replace").splitlines(keepends=True)
+out = []
+found = False
+for line in text:
+    if needle in line and line.lstrip().startswith("#custom-start-menu"):
+        out.append(line_replace + "\n")
+        found = True
+    elif needle in line:
+        out.append(line_replace + "\n")
+        found = True
+    else:
+        out.append(line)
+if not found:
+    # append NovaArch launcher styling if marker line missing from user style
+    out.append("\n")
+    out.append("/* novaarch:start-menu launcher icon */\n")
+    out.append(line_replace + "\n")
+path.write_text("".join(out), encoding="utf-8")
+PY
+
+/usr/local/bin/novaarch-reload-waybar
+command -v notify-send >/dev/null 2>&1 && notify-send "NovaArch" "Start-menu icon applied." || true

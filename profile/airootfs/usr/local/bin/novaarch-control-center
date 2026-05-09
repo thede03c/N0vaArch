@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v wofi >/dev/null 2>&1; then
+  echo "wofi is required."
+  exit 1
+fi
+
+STATE_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/novaarch"
+AUTO_FILE="${STATE_DIR}/control-center-autostart"
+mkdir -p "${STATE_DIR}"
+[[ -f "${AUTO_FILE}" ]] || echo "1" > "${AUTO_FILE}"
+
+menu="$(
+cat <<'EOF'
+App Installer
+Package Updates
+Richer Monitor
+Gaming Preset
+Steam Launch Help
+Game Preset Templates
+NovaArch Tweaks
+Wallpaper Scene
+Wallpaper Manager
+UI Customizer
+Desktop Clock Widget
+Countdown Timer
+Open Trash
+App Shortcuts and Pinning
+Bluetooth Manager
+Network TUI
+Process Manager (GUI)
+Process Manager (CLI)
+Boot Branding Toggle
+Open Settings Folder
+Toggle Boot Autostart
+EOF
+)"
+
+choice="$(printf '%s\n' "${menu}" | wofi --dmenu --prompt 'NovaArch Control Center')"
+[[ -n "${choice:-}" ]] || exit 0
+
+case "${choice}" in
+  "App Installer")
+    exec /usr/local/bin/novaarch-app-installer
+    ;;
+  "Package Updates")
+    exec /usr/local/bin/novaarch-system-update
+    ;;
+  "Richer Monitor")
+    exec /usr/local/bin/novaarch-monitor
+    ;;
+  "Gaming Preset")
+    exec kitty --title "NovaArch Gaming Preset" sh -lc 'sudo novaarch-gaming-preset; echo; read -rp "Press Enter to close..." _'
+    ;;
+  "Steam Launch Help")
+    exec kitty --title "Steam Launch Help" sh -lc 'novaarch-steam-env; echo; read -rp "Press Enter to close..." _'
+    ;;
+  "Game Preset Templates")
+    exec /usr/local/bin/novaarch-game-presets
+    ;;
+  "NovaArch Tweaks")
+    exec /usr/local/bin/novaarch-tweaks
+    ;;
+  "Wallpaper Scene")
+    exec /usr/local/bin/novaarch-wallpaper-selector
+    ;;
+  "Wallpaper Manager")
+    exec /usr/local/bin/novaarch-wallpaper-manager
+    ;;
+  "UI Customizer")
+    exec /usr/local/bin/novaarch-ui-customizer
+    ;;
+  "Desktop Clock Widget")
+    exec /usr/local/bin/novaarch-desktop-clock
+    ;;
+  "Countdown Timer")
+    exec /usr/local/bin/novaarch-countdown-timer
+    ;;
+  "Open Trash")
+    exec /usr/local/bin/novaarch-open-trash
+    ;;
+  "App Shortcuts and Pinning")
+    exec /usr/local/bin/novaarch-app-shortcuts
+    ;;
+  "Bluetooth Manager")
+    exec blueman-manager
+    ;;
+  "Network TUI")
+    exec kitty --title "Network Manager" nmtui
+    ;;
+  "Process Manager (GUI)")
+    exec qps
+    ;;
+  "Process Manager (CLI)")
+    exec kitty --title "Process Manager" btop
+    ;;
+  "Boot Branding Toggle")
+    exec kitty --title "Boot Branding" sh -lc 'current="$(novaarch-plymouth-toggle status)"; if [[ "${current}" == "enabled" ]]; then sudo novaarch-plymouth-toggle off; else sudo novaarch-plymouth-toggle on; fi; echo; novaarch-plymouth-toggle status; read -rp "Press Enter to close..." _'
+    ;;
+  "Open Settings Folder")
+    exec thunar "${HOME}/.config"
+    ;;
+  "Toggle Boot Autostart")
+    current="$(tr -d '\r\n' < "${AUTO_FILE}")"
+    if [[ "${current}" == "1" ]]; then
+      echo "0" > "${AUTO_FILE}"
+      command -v notify-send >/dev/null 2>&1 && notify-send "NovaArch" "Control Center autostart disabled"
+    else
+      echo "1" > "${AUTO_FILE}"
+      command -v notify-send >/dev/null 2>&1 && notify-send "NovaArch" "Control Center autostart enabled"
+    fi
+    ;;
+esac

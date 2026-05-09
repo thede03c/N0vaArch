@@ -1,0 +1,7 @@
+ N   N   OOOOO   V     V    A    
+ NN  N  O     O  V     V   A A   
+ N N N  O     O   V   V  AAAAA  
+ N  NN  O     O    V V  A     A  
+ N   N   OOOOO      V   A     A  
+
+    Arch Linux remix — NovaArch

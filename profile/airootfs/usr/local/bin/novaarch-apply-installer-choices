@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+choices_file="/etc/novaarch/installer-choices.env"
+[[ -f "${choices_file}" ]] || exit 0
+log_file="/var/log/novaarch-installer-choices.log"
+touch "${log_file}"
+exec > >(tee -a "${log_file}") 2>&1
+
+echo "NovaArch installer choices is starting..."
+date -Iseconds
+echo "Using choices file: ${choices_file}"
+
+# shellcheck source=/dev/null
+source "${choices_file}"
+
+IFS=',' read -r -a browser_choices <<< "${BROWSER_CHOICES:-none}"
+IFS=',' read -r -a vpn_choices <<< "${VPN_CHOICES:-none}"
+IFS=',' read -r -a app_choices <<< "${APP_CHOICES:-none}"
+
+pkgs=()
+flatpaks=()
+
+append_pkgs() {
+  local value="$1"
+  [[ "${value}" == "none" || -z "${value}" ]] && return 0
+  pkgs+=("${value}")
+}
+
+for item in "${browser_choices[@]}"; do
+  case "${item}" in
+    none) ;;
+    brave-flatpak) flatpaks+=("com.brave.Browser") ;;
+    *) append_pkgs "${item}" ;;
+  esac
+done
+
+for item in "${vpn_choices[@]}"; do
+  append_pkgs "${item}"
+done
+
+for item in "${app_choices[@]}"; do
+  append_pkgs "${item}"
+done
+
+if ((${#pkgs[@]} > 0)); then
+  echo "Installing pacman packages: ${pkgs[*]}"
+  if pacman -S --noconfirm --needed "${pkgs[@]}"; then
+    echo "Pacman package installation: SUCCESS"
+  else
+    echo "Pacman package installation: FAILED (continuing)"
+  fi
+else
+  echo "No pacman packages selected."
+fi
+
+if ((${#flatpaks[@]} > 0)); then
+  echo "Installing flatpak packages: ${flatpaks[*]}"
+  if command -v flatpak >/dev/null 2>&1; then
+    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo || true
+    if flatpak install -y flathub "${flatpaks[@]}"; then
+      echo "Flatpak installation: SUCCESS"
+    else
+      echo "Flatpak installation: FAILED (continuing)"
+    fi
+  else
+    echo "Flatpak binary missing; skipped flatpak package install."
+  fi
+else
+  echo "No flatpak packages selected."
+fi
+
+echo "NovaArch installer choices has finished!"

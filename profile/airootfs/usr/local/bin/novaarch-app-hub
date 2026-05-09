@@ -1,0 +1,235 @@
+#!/usr/bin/env python3
+import subprocess
+import gi
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gdk
+
+
+APPS = [
+    ("Firefox", "pacman", "firefox", "firefox"),
+    ("Chromium", "pacman", "chromium", "chromium"),
+    ("Falkon", "pacman", "falkon", "applications-internet"),
+    ("Brave", "flatpak", "com.brave.Browser", "applications-internet"),
+    ("Discord", "pacman", "discord", "discord"),
+    ("Spotify", "pacman", "spotify-launcher", "multimedia-player"),
+    ("Telegram", "pacman", "telegram-desktop", "telegram"),
+    ("Lutris", "pacman", "lutris", "lutris"),
+    ("Heroic Games Launcher", "pacman", "heroic-games-launcher", "applications-games"),
+    ("Steam", "pacman", "steam", "steam"),
+    ("Wine", "pacman", "wine winetricks", "wine"),
+    ("OBS Studio", "pacman", "obs-studio", "obs"),
+    ("VLC", "pacman", "vlc", "vlc"),
+    ("GIMP", "pacman", "gimp", "gimp"),
+    ("LibreOffice", "pacman", "libreoffice-fresh", "libreoffice-startcenter"),
+    ("Thunderbird", "pacman", "thunderbird", "thunderbird"),
+    ("PCManFM File Manager", "pacman", "pcmanfm", "system-file-manager"),
+    ("Dolphin File Manager", "pacman", "dolphin", "system-file-manager"),
+    ("Mullvad VPN", "pacman", "mullvad-vpn", "network-vpn"),
+    ("OpenVPN", "pacman", "openvpn networkmanager-openvpn", "network-vpn"),
+    ("WireGuard Tools", "pacman", "wireguard-tools", "network-vpn"),
+]
+
+
+def run_terminal(command: str, title: str) -> None:
+    subprocess.Popen(
+        [
+            "kitty",
+            "--title",
+            title,
+            "sh",
+            "-lc",
+            command + "; echo; read -rp 'Press Enter to close...' _",
+        ]
+    )
+
+
+class NovaArchAppHub(Gtk.Window):
+    def __init__(self):
+        super().__init__(title="NovaArch App Hub")
+        self.set_default_size(920, 600)
+        self.set_border_width(12)
+        self._apply_css()
+
+        self.selected = {}
+        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        self.add(root)
+
+        title = Gtk.Label()
+        title.set_markup("<span size='x-large' weight='bold'>NovaArch Apps and Tweaks</span>")
+        title.set_halign(Gtk.Align.START)
+        root.pack_start(title, False, False, 0)
+
+        self.counter = Gtk.Label(label="0 items selected")
+        self.counter.set_halign(Gtk.Align.START)
+        root.pack_start(self.counter, False, False, 0)
+
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        root.pack_start(scrolled, True, True, 0)
+
+        grid = Gtk.FlowBox()
+        grid.set_max_children_per_line(3)
+        grid.set_selection_mode(Gtk.SelectionMode.NONE)
+        grid.set_row_spacing(8)
+        grid.set_column_spacing(8)
+        scrolled.add(grid)
+
+        for label, backend, package, icon_name in APPS:
+            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+            row.set_margin_top(6)
+            row.set_margin_bottom(6)
+            row.set_margin_start(8)
+            row.set_margin_end(8)
+
+            icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.DIALOG)
+            row.pack_start(icon, False, False, 0)
+
+            suffix = "(Flatpak)" if backend == "flatpak" else "(Repo)"
+            toggle = Gtk.CheckButton(label=f"{label} {suffix}\n{package}")
+            key = f"{backend}:{package}"
+            toggle.connect("toggled", self.on_toggled, key)
+            row.pack_start(toggle, True, True, 0)
+
+            frame = Gtk.Frame()
+            frame.get_style_context().add_class("app-card")
+            frame.add(row)
+            grid.add(frame)
+            self.selected[key] = False
+
+        actions = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        root.pack_start(actions, False, False, 0)
+
+        install_btn = Gtk.Button(label="Install Selected")
+        install_btn.connect("clicked", self.install_selected)
+        actions.pack_start(install_btn, False, False, 0)
+
+        remove_btn = Gtk.Button(label="Remove Selected")
+        remove_btn.connect("clicked", self.remove_selected)
+        actions.pack_start(remove_btn, False, False, 0)
+
+        keyring_btn = Gtk.Button(label="Reset Keyrings")
+        keyring_btn.connect("clicked", self.reset_keyrings)
+        actions.pack_start(keyring_btn, False, False, 0)
+
+        reinstall_btn = Gtk.Button(label="Reinstall Package")
+        reinstall_btn.connect("clicked", self.reinstall_package)
+        actions.pack_start(reinstall_btn, False, False, 0)
+
+        updates_btn = Gtk.Button(label="Check and Install Updates")
+        updates_btn.connect("clicked", self.system_update)
+        actions.pack_start(updates_btn, False, False, 0)
+
+    def _apply_css(self):
+        css = b"""
+        window { background: #0d1320; }
+        label { color: #e7edf7; }
+        frame.app-card {
+          border-radius: 8px;
+          border: 1px solid #2a3850;
+          background: #131b2b;
+        }
+        button {
+          background: #1f3558;
+          color: #f5fbff;
+          border-radius: 6px;
+          border: 1px solid #2b588f;
+        }
+        checkbutton { color: #d7e4f8; }
+        """
+        provider = Gtk.CssProvider()
+        provider.load_from_data(css)
+        screen = Gdk.Screen.get_default()
+        Gtk.StyleContext.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+    def on_toggled(self, checkbox: Gtk.CheckButton, key: str):
+        self.selected[key] = checkbox.get_active()
+        count = sum(1 for value in self.selected.values() if value)
+        self.counter.set_text(f"{count} item selected" if count == 1 else f"{count} items selected")
+
+    def _selected_packages(self):
+        pacman = []
+        flatpak = []
+        for key, enabled in self.selected.items():
+            if not enabled:
+                continue
+            backend, package = key.split(":", 1)
+            if backend == "flatpak":
+                flatpak.append(package)
+            else:
+                pacman.extend(package.split())
+        return pacman, flatpak
+
+    def install_selected(self, _button):
+        pacman_pkgs, flatpak_pkgs = self._selected_packages()
+        if not pacman_pkgs and not flatpak_pkgs:
+            self.show_message("Nothing selected", "Select at least one package first.")
+            return
+        cmd_parts = []
+        if pacman_pkgs:
+            cmd_parts.append(f"sudo pacman -S --needed {' '.join(sorted(set(pacman_pkgs)))}")
+        if flatpak_pkgs:
+            cmd_parts.append("novaarch-flatpak-setup")
+            cmd_parts.append(f"flatpak install -y flathub {' '.join(sorted(set(flatpak_pkgs)))}")
+        run_terminal("; ".join(cmd_parts), "NovaArch Install Apps")
+
+    def remove_selected(self, _button):
+        pacman_pkgs, flatpak_pkgs = self._selected_packages()
+        if not pacman_pkgs and not flatpak_pkgs:
+            self.show_message("Nothing selected", "Select at least one package first.")
+            return
+        cmd_parts = []
+        if pacman_pkgs:
+            cmd_parts.append(f"sudo pacman -Rns {' '.join(sorted(set(pacman_pkgs)))}")
+        if flatpak_pkgs:
+            cmd_parts.append(f"flatpak uninstall -y {' '.join(sorted(set(flatpak_pkgs)))}")
+        run_terminal("; ".join(cmd_parts), "NovaArch Remove Apps")
+
+    def reset_keyrings(self, _button):
+        cmd = (
+            "sudo rm -rf /etc/pacman.d/gnupg; "
+            "sudo pacman-key --init; "
+            "sudo pacman-key --populate archlinux; "
+            "echo 'Keyring reset complete.'"
+        )
+        run_terminal(cmd, "NovaArch Reset Keyrings")
+
+    def reinstall_package(self, _button):
+        dialog = Gtk.Dialog(title="Reinstall Package", transient_for=self, flags=0)
+        dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        box = dialog.get_content_area()
+        entry = Gtk.Entry()
+        entry.set_placeholder_text("Enter package name")
+        box.pack_start(entry, False, False, 8)
+        dialog.show_all()
+        response = dialog.run()
+        package = entry.get_text().strip()
+        dialog.destroy()
+        if response == Gtk.ResponseType.OK and package:
+            run_terminal(f"sudo pacman -S --needed {package}", "NovaArch Reinstall Package")
+
+    def system_update(self, _button):
+        run_terminal("novaarch-check-updates; echo; sudo pacman -Syu", "NovaArch System Update")
+
+    def show_message(self, title: str, body: str):
+        dialog = Gtk.MessageDialog(
+            transient_for=self,
+            flags=0,
+            message_type=Gtk.MessageType.INFO,
+            buttons=Gtk.ButtonsType.OK,
+            text=title,
+        )
+        dialog.format_secondary_text(body)
+        dialog.run()
+        dialog.destroy()
+
+
+def main():
+    win = NovaArchAppHub()
+    win.connect("destroy", Gtk.main_quit)
+    win.show_all()
+    Gtk.main()
+
+
+if __name__ == "__main__":
+    main()

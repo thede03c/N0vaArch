@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+prompt="${NOVAARCH_START_MENU_PROMPT:-Type here to search}"
+mode="${NOVAARCH_START_MENU_MODE:-unified}"
+
+if ! command -v wofi >/dev/null 2>&1; then
+  echo "wofi is required."
+  exit 1
+fi
+
+run_drun() {
+  exec wofi --show drun --allow-images --prompt "${prompt}" "$@"
+}
+
+cache_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/novaarch"
+exe_cache="${cache_dir}/start-menu-binaries.cache"
+
+cache_stale() {
+  [[ ! -f "${exe_cache}" ]] && return 0
+  [[ -n "${NOVAARCH_START_MENU_REFRESH:-}" ]] && return 0
+  local m=0
+  m="$(stat -c %Y "${exe_cache}" 2>/dev/null || echo 0)"
+  [[ $(($(date +%s) - m)) -gt 3600 ]]
+}
+
+rebuild_exe_cache() {
+  mkdir -p "${cache_dir}"
+  local tmp="${exe_cache}.new"
+  : >"${tmp}"
+  while IFS= read -r d; do
+    [[ -d "${d}" ]] || continue
+    find -L "${d}" -maxdepth 1 \( -type f -o -type l \) -executable ! -type d -printf '%f\n' 2>/dev/null
+  done < <(echo "${PATH}" | tr ':' '\n') | sort -u >"${tmp}"
+  mv -f "${tmp}" "${exe_cache}"
+}
+
+desktop_line() {
+  local f="$1"
+  local nd name id
+  nd="$(grep -m1 '^NoDisplay=' "${f}" 2>/dev/null | cut -d= -f2- | tr -d '\r\n' || true)"
+  [[ "${nd}" == "true" ]] && return 1
+  id="$(basename "${f}")"
+  name="$(grep -m1 '^Name=' "${f}" 2>/dev/null | cut -d= -f2- | tr -d '\r\n' || true)"
+  [[ -z "${name}" ]] && name="${id%.desktop}"
+  printf '%s (%s)\n' "${name}" "${id}"
+}
+
+run_unified() {
+  mkdir -p "${cache_dir}"
+  if cache_stale; then
+    rebuild_exe_cache || true
+  fi
+
+  local menu
+  menu="$(mktemp)"
+  trap 'rm -f "${menu}"' EXIT
+
+  local dir f
+  for dir in "${HOME}/.local/share/applications" "/usr/share/applications"; do
+    [[ -d "${dir}" ]] || continue
+    while IFS= read -r -d '' f; do
+      desktop_line "${f}" || true
+    done < <(find "${dir}" -name '*.desktop' -print0 2>/dev/null || true)
+  done | LC_ALL=C sort -u >>"${menu}"
+
+  if [[ -f "${exe_cache}" ]]; then
+    while IFS= read -r bin; do
+      [[ -z "${bin}" ]] && continue
+      printf '%s (command)\n' "${bin}"
+    done <"${exe_cache}" >>"${menu}"
+  fi
+
+  pick="$(LC_ALL=C sort -f -u "${menu}" | wofi --dmenu --insensitive --prompt "${prompt}")"
+  [[ -n "${pick}" ]] || exit 0
+
+  if [[ "${pick}" == *' (command)' ]]; then
+    bin="${pick%' (command)'}"
+    exe="$(command -v "${bin}" || true)"
+    [[ -n "${exe}" ]] || { printf '%s: command not found in PATH.\n' "${bin}" >&2; exit 127; }
+    exec "${exe}"
+  fi
+
+  if [[ "${pick}" =~ \(([A-Za-z0-9_.+-]+\.desktop)\)$ ]]; then
+    exec gtk-launch "${BASH_REMATCH[1]}"
+  fi
+
+  run_drun
+}
+
+case "${mode}" in
+  drun | apps) run_drun "$@" ;;
+  *) run_unified "$@" ;;
+esac

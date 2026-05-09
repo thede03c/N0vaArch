@@ -1,0 +1,25 @@
+---
+componentName: novaarch
+welcomeStyleCalamares: true
+welcomeExpandingLogo: true
+strings:
+  productName: NovaArch
+  shortProductName: NovaArch
+  version: rolling
+  shortVersion: rolling
+  versionedName: NovaArch rolling
+  shortVersionedName: NovaArch
+  bootloaderEntryName: NovaArch
+  productUrl: https://archlinux.org
+  supportUrl: https://wiki.archlinux.org
+  knownIssuesUrl: https://wiki.archlinux.org
+  releaseNotesUrl: https://wiki.archlinux.org
+images:
+  productLogo: /usr/share/pixmaps/novaarch.svg
+  productIcon: /usr/share/pixmaps/novaarch.svg
+  productWelcome: /usr/share/pixmaps/novaarch.svg
+slideshow: show.qml
+style:
+  sidebarBackground: "#131a23"
+  sidebarText: "#f3f7ff"
+  sidebarTextSelect: "#71d4ff"

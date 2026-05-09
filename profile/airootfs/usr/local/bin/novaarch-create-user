@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "Run as root."
+  exit 1
+fi
+
+read -rp "New username: " NEW_USER
+if [[ -z "${NEW_USER}" ]]; then
+  echo "Username cannot be empty."
+  exit 1
+fi
+
+if id "${NEW_USER}" >/dev/null 2>&1; then
+  echo "User '${NEW_USER}' already exists."
+  exit 1
+fi
+
+useradd -m -G wheel,video,audio,games,input,storage "${NEW_USER}"
+passwd "${NEW_USER}"
+
+echo "User '${NEW_USER}' created and added to sudo-capable groups."

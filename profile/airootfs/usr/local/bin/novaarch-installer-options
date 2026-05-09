@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+import os
+import gi
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+
+
+STATE_DIR = "/tmp/novaarch-installer"
+OUT_FILE = os.path.join(STATE_DIR, "choices.env")
+OPTIONS = [
+    ("Firefox", "browser:firefox", "firefox"),
+    ("Chromium", "browser:chromium", "chromium"),
+    ("Brave (Flatpak)", "browser:brave-flatpak", "applications-internet"),
+    ("Mullvad VPN", "vpn:mullvad-vpn", "network-vpn"),
+    ("OpenVPN", "vpn:openvpn", "network-vpn"),
+    ("WireGuard", "vpn:wireguard-tools", "network-vpn"),
+    ("Steam", "app:steam", "steam"),
+    ("Lutris", "app:lutris", "lutris"),
+    ("Heroic", "app:heroic-games-launcher", "applications-games"),
+    ("Discord", "app:discord", "discord"),
+    ("Spotify", "app:spotify-launcher", "multimedia-player"),
+]
+
+
+class InstallerOptions(Gtk.Window):
+    def __init__(self):
+        super().__init__(title="NovaArch Installer Selection")
+        self.set_default_size(860, 560)
+        self.set_border_width(12)
+        self.selected = {}
+
+        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        self.add(root)
+
+        title = Gtk.Label()
+        title.set_markup("<span size='x-large' weight='bold'>Select Your Apps Before Install</span>")
+        title.set_halign(Gtk.Align.START)
+        root.pack_start(title, False, False, 0)
+
+        self.counter = Gtk.Label(label="0 items selected")
+        self.counter.set_halign(Gtk.Align.START)
+        root.pack_start(self.counter, False, False, 0)
+
+        flow = Gtk.FlowBox()
+        flow.set_max_children_per_line(3)
+        flow.set_selection_mode(Gtk.SelectionMode.NONE)
+        flow.set_row_spacing(8)
+        flow.set_column_spacing(8)
+
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.add(flow)
+        root.pack_start(scrolled, True, True, 0)
+
+        for label, key, icon_name in OPTIONS:
+            frame = Gtk.Frame()
+            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+            row.set_margin_top(6)
+            row.set_margin_bottom(6)
+            row.set_margin_start(8)
+            row.set_margin_end(8)
+
+            icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.DIALOG)
+            row.pack_start(icon, False, False, 0)
+            toggle = Gtk.CheckButton(label=label)
+            toggle.connect("toggled", self.on_toggle, key)
+            row.pack_start(toggle, True, True, 0)
+            frame.add(row)
+            flow.add(frame)
+            self.selected[key] = False
+
+        btns = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        save_btn = Gtk.Button(label="Continue to Installer")
+        save_btn.connect("clicked", self.save_and_close)
+        skip_btn = Gtk.Button(label="Skip")
+        skip_btn.connect("clicked", self.skip)
+        btns.pack_start(save_btn, False, False, 0)
+        btns.pack_start(skip_btn, False, False, 0)
+        root.pack_start(btns, False, False, 0)
+
+    def on_toggle(self, checkbox: Gtk.CheckButton, key: str):
+        self.selected[key] = checkbox.get_active()
+        count = sum(1 for value in self.selected.values() if value)
+        self.counter.set_text(f"{count} item selected" if count == 1 else f"{count} items selected")
+
+    def _write_state(self):
+        os.makedirs(STATE_DIR, exist_ok=True)
+        selected_items = [key for key, enabled in self.selected.items() if enabled]
+        browsers = [item.split(":", 1)[1] for item in selected_items if item.startswith("browser:")]
+        vpns = [item.split(":", 1)[1] for item in selected_items if item.startswith("vpn:")]
+        apps = [item.split(":", 1)[1] for item in selected_items if item.startswith("app:")]
+        with open(OUT_FILE, "w", encoding="utf-8") as f:
+            f.write(f"BROWSER_CHOICES={','.join(browsers) if browsers else 'none'}\n")
+            f.write(f"VPN_CHOICES={','.join(vpns) if vpns else 'none'}\n")
+            f.write(f"APP_CHOICES={','.join(apps) if apps else 'none'}\n")
+
+    def save_and_close(self, _button):
+        self._write_state()
+        Gtk.main_quit()
+
+    def skip(self, _button):
+        os.makedirs(STATE_DIR, exist_ok=True)
+        with open(OUT_FILE, "w", encoding="utf-8") as f:
+            f.write("BROWSER_CHOICES=none\nVPN_CHOICES=none\nAPP_CHOICES=none\n")
+        Gtk.main_quit()
+
+
+def main():
+    win = InstallerOptions()
+    win.connect("destroy", Gtk.main_quit)
+    win.show_all()
+    Gtk.main()
+
+
+if __name__ == "__main__":
+    main()

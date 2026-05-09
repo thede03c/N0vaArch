@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+desktop_dir="${HOME}/Desktop"
+pinned_dir="${HOME}/.local/share/novaarch/pinned-apps"
+mkdir -p "${desktop_dir}" "${pinned_dir}"
+
+pick_app() {
+  local picked
+  picked="$(
+    rg --files "/usr/share/applications" -g "*.desktop" \
+      | sed 's|.*/||' \
+      | sort \
+      | wofi --dmenu --prompt "Select app"
+  )"
+  [[ -n "${picked:-}" ]] || return 1
+  echo "${picked}"
+}
+
+add_to_desktop() {
+  local app="$1"
+  install -Dm755 "/usr/share/applications/${app}" "${desktop_dir}/${app}"
+  notify-send "NovaArch" "Added ${app} to Desktop" >/dev/null 2>&1 || true
+}
+
+pin_to_taskbar() {
+  local app="$1"
+  install -Dm755 "/usr/share/applications/${app}" "${pinned_dir}/${app}"
+  notify-send "NovaArch" "Pinned ${app} to taskbar launcher" >/dev/null 2>&1 || true
+}
+
+choice="$(cat <<'EOF' | wofi --dmenu --prompt 'App Shortcuts'
+Add App to Desktop
+Pin App to Taskbar Launcher
+Unpin App from Taskbar Launcher
+Open Desktop Folder
+EOF
+)"
+[[ -n "${choice:-}" ]] || exit 0
+
+case "${choice}" in
+  "Add App to Desktop")
+    app="$(pick_app)" || exit 0
+    add_to_desktop "${app}"
+    ;;
+  "Pin App to Taskbar Launcher")
+    app="$(pick_app)" || exit 0
+    pin_to_taskbar "${app}"
+    ;;
+  "Unpin App from Taskbar Launcher")
+    app="$(
+      rg --files "${pinned_dir}" -g "*.desktop" \
+        | sed 's|.*/||' \
+        | sort \
+        | wofi --dmenu --prompt "Unpin app"
+    )"
+    [[ -n "${app:-}" ]] || exit 0
+    rm -f "${pinned_dir}/${app}"
+    ;;
+  "Open Desktop Folder")
+    exec thunar "${desktop_dir}"
+    ;;
+esac

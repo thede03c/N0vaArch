@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=NovaArch
+Description=NovaArch branded boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/novaarch
+ScriptFile=/usr/share/plymouth/themes/novaarch/novaarch.script

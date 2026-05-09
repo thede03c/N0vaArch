@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cat <<'EOF'
+NovaArch first boot notes
+------------------------
+- Logitech G HUB is not available on Linux; use piper/solaar/openrgb alternatives.
+- For Logitech wheel tuning, try oversteer.
+- Lian Li SL Wireless LCD Linux control may be partial/unofficial.
+- Create your install user with: archinstall (recommended) or novaarch-create-user
+- Choose animated scene with: novaarch-wallpaper-selector
+- Update indicator appears in Waybar as "UPD <count>".
+- NovaArch Control Center opens on login (toggle inside it if you want to disable).
+- Shortcut: SUPER+SHIFT+C opens Control Center.
+- NovaArch Welcome app opens on login (toggle inside it if you want to disable).
+- Shortcut: SUPER+SHIFT+A opens Welcome app.
+- If Bluetooth/Wi-Fi need reset: sudo novaarch-wireless-repair
+EOF

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+pinned_dir="${HOME}/.local/share/novaarch/pinned-apps"
+mkdir -p "${pinned_dir}"
+
+source_file="${1:-}"
+if [[ -z "${source_file}" || ! -f "${source_file}" ]]; then
+  echo "Usage: novaarch-pin-taskbar-shortcut /path/to/app.desktop"
+  exit 1
+fi
+
+if [[ "${source_file}" != *.desktop ]]; then
+  echo "Only .desktop files are supported."
+  exit 1
+fi
+
+target="${pinned_dir}/$(basename "${source_file}")"
+install -Dm755 "${source_file}" "${target}"
+notify-send "NovaArch" "Pinned to taskbar: $(basename "${source_file}")" >/dev/null 2>&1 || true

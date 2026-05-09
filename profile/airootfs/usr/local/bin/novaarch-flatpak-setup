@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v flatpak >/dev/null 2>&1; then
+  echo "flatpak is not installed."
+  exit 1
+fi
+
+if flatpak remotes --columns=name | rg '^flathub$' >/dev/null 2>&1; then
+  echo "flathub remote already configured."
+  exit 0
+fi
+
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+echo "flathub configured."

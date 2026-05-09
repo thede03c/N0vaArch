@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+theme_script="/usr/share/plymouth/themes/novaarch/novaarch.script"
+[[ -f "${theme_script}" ]] || exit 0
+
+brand="$("/usr/local/bin/novaarch-detect-oem" 2>/dev/null || echo "OEM Firmware")"
+brand="${brand//\"/}"
+[[ -n "${brand}" ]] || brand="OEM Firmware"
+
+sed -i "s/^topText = Image.Text(.*/topText = Image.Text(\"${brand}\");/" "${theme_script}"

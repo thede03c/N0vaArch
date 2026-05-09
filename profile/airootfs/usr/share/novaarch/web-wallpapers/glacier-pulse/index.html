@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NovaArch Glacier Pulse</title>
+  <style>
+    html,body{margin:0;height:100%;overflow:hidden;background:#07111d}
+    .base{position:fixed;inset:0;background:radial-gradient(circle at 30% 20%,#5fe4ff33,transparent 38%),linear-gradient(140deg,#06101d,#0e1b2f,#091320)}
+    .beam{position:absolute;left:0;top:45%;width:120%;height:10px;background:linear-gradient(90deg,transparent,#7ce8ff,transparent);filter:blur(6px);animation:sweep 7s linear infinite}
+    .poly{position:absolute;inset:0;background:conic-gradient(from 0deg at 50% 50%,#2f7eff22,#62f0ff22,#2f7eff22);mix-blend-mode:screen;animation:spin 18s linear infinite}
+    @keyframes sweep{from{transform:translateX(-20%)}to{transform:translateX(20%)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <div class="base"></div>
+  <div class="poly"></div>
+  <div class="beam"></div>
+</body>
+</html>

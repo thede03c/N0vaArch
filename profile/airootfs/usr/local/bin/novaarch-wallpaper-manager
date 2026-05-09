@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/novaarch"
+STATIC_FILE="${STATE_DIR}/static-wallpaper"
+DISABLE_ANIMATED_FILE="${STATE_DIR}/disable-animated-wallpaper"
+DEFAULT_DIR="/usr/share/backgrounds/novaarch"
+USER_DIR="${HOME}/Pictures/Wallpapers"
+
+mkdir -p "${STATE_DIR}" "${USER_DIR}"
+
+apply_wallpaper() {
+  local file="$1"
+  [[ -f "${file}" ]] || return 1
+  pkill -f "chromium --kiosk --app=file:///usr/share/novaarch/web-wallpapers" >/dev/null 2>&1 || true
+  pkill -x swaybg >/dev/null 2>&1 || true
+  swaybg -i "${file}" -m fill >/dev/null 2>&1 &
+  printf '%s\n' "${file}" >"${STATIC_FILE}"
+  echo "1" >"${DISABLE_ANIMATED_FILE}"
+}
+
+enumerate_for_wofi() {
+  local mf="$1" tag="$2"
+  WANT_TAG="${tag}" MF_PATH="${mf}" DEF_DIR="${DEFAULT_DIR}" python3 <<'PY'
+import json, os, pathlib
+
+want = (os.environ.get("WANT_TAG") or "").strip()
+mf_path = pathlib.Path(os.environ["MF_PATH"])
+default_dir = pathlib.Path(os.environ["DEF_DIR"])
+seen = []
+
+def emit(path: pathlib.Path, label: str) -> None:
+    seen.append((label.lower(), path.as_posix() + "|" + label))
+
+if mf_path.is_file():
+    try:
+        data = json.loads(mf_path.read_text(encoding="utf-8"))
+        for row in data.get("items") or []:
+            fn = row.get("file")
+            if not fn:
+                continue
+            tags = {str(x) for x in (row.get("tags") or [])}
+            if want and want not in tags:
+                continue
+            fp = default_dir / fn
+            if fp.is_file():
+                lbl = fn + " (" + ",".join(sorted(tags)) + ")"
+                emit(fp, lbl)
+    except Exception:
+        pass
+
+if not seen and default_dir.is_dir():
+    for p in sorted(default_dir.iterdir()):
+        if p.is_file():
+            emit(p, p.name)
+
+for _, line in sorted(seen):
+    print(line)
+PY
+}
+
+pick_default() {
+  local manifest="${DEFAULT_DIR}/wallpapers-manifest.json"
+  local tag=""
+  if [[ -f "${manifest}" ]] && command -v wofi >/dev/null 2>&1; then
+    if tags="$(list_manifest_tags "${manifest}" 2>/dev/null)" && [[ -n "${tags}" ]]; then
+      tag="$(
+        {
+          printf '%s\n' "all"
+          printf '%s\n' "${tags}"
+        } | wofi --dmenu --insensitive --prompt 'Wallpaper tags (manifest)'
+      )"
+      [[ "${tag}" == "all" ]] && tag=""
+    fi
+  fi
+
+  local pick
+  mapfile -t pick < <(enumerate_for_wofi "${manifest:-/dev/null}" "${tag}")
+
+  [[ "${#pick[@]}" -eq 0 ]] && {
+    mapfile -t pick < <(enumerate_for_wofi "/dev/null" "")
+  }
+
+  local selected
+  selected="$(printf '%s\n' "${pick[@]}" | wofi --dmenu --prompt 'Default wallpaper')" || true
+  [[ -n "${selected:-}" ]] || exit 0
+
+  local path_disp="${selected%%|*}"
+  [[ -z "${path_disp}" ]] && exit 0
+  apply_wallpaper "${path_disp}"
+}
+
+list_manifest_tags() {
+  local mf="$1"
+  MANIFEST_JSON="${mf}" python3 <<'PY'
+import json, os
+
+with open(os.environ["MANIFEST_JSON"], encoding="utf-8") as fh:
+    data = json.load(fh)
+seen = set()
+for row in data.get("items") or []:
+    for t in row.get("tags") or []:
+        seen.add(str(t))
+print("\n".join(sorted(seen)))
+PY
+}
+
+import_custom() {
+  local src=""
+  if command -v zenity >/dev/null 2>&1; then
+    src="$(zenity --file-selection --title='Choose image wallpaper' 2>/dev/null || true)"
+  fi
+  if [[ -z "${src}" ]]; then
+    read -rp "Enter absolute image path: " src
+  fi
+  [[ -f "${src}" ]] || { echo "Invalid file."; exit 1; }
+  local base
+  base="$(basename "${src}")"
+  cp -f "${src}" "${USER_DIR}/${base}"
+  apply_wallpaper "${USER_DIR}/${base}"
+}
+
+restore_last() {
+  [[ -f "${STATIC_FILE}" ]] || exit 0
+  apply_wallpaper "$(tr -d '\r\n' <"${STATIC_FILE}")"
+}
+
+if [[ "${1:-}" == "--restore-last" ]]; then
+  restore_last
+  exit 0
+fi
+
+choice="$(cat <<'EOF' | wofi --dmenu --prompt 'NovaArch Wallpaper'
+Use Default Wallpaper
+Import Custom Wallpaper
+Open Wallpaper Folder
+EOF
+)"
+[[ -n "${choice:-}" ]] || exit 0
+
+case "${choice}" in
+  "Use Default Wallpaper") pick_default ;;
+  "Import Custom Wallpaper") import_custom ;;
+  "Open Wallpaper Folder") exec thunar "${USER_DIR}" ;;
+esac

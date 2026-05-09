@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+state_dir="/etc/novaarch"
+state_file="${state_dir}/boot-branding.enabled"
+mkdir -p "${state_dir}"
+[[ -f "${state_file}" ]] || echo "1" > "${state_file}"
+
+usage() {
+  echo "Usage: novaarch-plymouth-toggle [on|off|status]"
+}
+
+set_theme() {
+  local theme="$1"
+  if command -v plymouth-set-default-theme >/dev/null 2>&1; then
+    plymouth-set-default-theme "${theme}" >/dev/null 2>&1 || true
+  fi
+}
+
+case "${1:-status}" in
+  on)
+    echo "1" > "${state_file}"
+    set_theme "novaarch"
+    echo "Boot branding enabled."
+    ;;
+  off)
+    echo "0" > "${state_file}"
+    set_theme "spinner"
+    echo "Boot branding disabled."
+    ;;
+  status)
+    current="$(tr -d '\r\n' < "${state_file}")"
+    if [[ "${current}" == "1" ]]; then
+      echo "enabled"
+    else
+      echo "disabled"
+    fi
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac

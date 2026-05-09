@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="/usr/share/novaarch/web-wallpapers"
+STATE_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/novaarch"
+STATE_FILE="${STATE_DIR}/wallpaper-scene"
+DISABLE_ANIMATED_FILE="${STATE_DIR}/disable-animated-wallpaper"
+
+mkdir -p "${STATE_DIR}"
+
+if [[ ! -d "${BASE}" ]]; then
+  echo "Wallpaper pack not found."
+  exit 1
+fi
+
+scene_has_tag() {
+  local meta="$1"
+  local want="$2"
+  [[ -z "${want}" ]] && return 0
+  [[ -f "${meta}" ]] || return 1
+  command -v python3 >/dev/null 2>&1 || return 1
+  python3 -c "
+import json, sys
+path, want = sys.argv[1], sys.argv[2]
+try:
+    with open(path, encoding='utf-8') as f:
+        data = json.load(f)
+except Exception:
+    sys.exit(1)
+tags = data.get('tags') or []
+sys.exit(0 if want in tags else 1)
+" "${meta}" "${want}"
+}
+
+list_scenes_filtered() {
+  local tag="${1:-}"
+  local scene name
+  for scene in "${BASE}"/*/; do
+    [[ -d "${scene}" ]] || continue
+    name="$(basename "${scene}")"
+    if scene_has_tag "${scene}/meta.json" "${tag}"; then
+      printf '%s\n' "${name}"
+    fi
+  done
+}
+
+launch_scene() {
+  local name="$1"
+  local target="${BASE}/${name}/index.html"
+  if [[ ! -f "${target}" ]]; then
+    echo "Invalid wallpaper selection: ${name}"
+    exit 1
+  fi
+
+  printf '%s\n' "${name}" > "${STATE_FILE}"
+  rm -f "${DISABLE_ANIMATED_FILE}" || true
+  pkill -f "chromium --kiosk --app=file:///usr/share/novaarch/web-wallpapers" >/dev/null 2>&1 || true
+  echo "Launching ${name} in fullscreen browser mode..."
+  chromium --kiosk --app="file://${target}" >/dev/null 2>&1 &
+}
+
+if [[ "${1:-}" == "--last" ]]; then
+  if [[ -f "${DISABLE_ANIMATED_FILE}" ]]; then
+    exit 0
+  fi
+  if [[ -f "${STATE_FILE}" ]]; then
+    launch_scene "$(tr -d '\r\n' < "${STATE_FILE}")"
+    exit 0
+  fi
+  launch_scene "aurora-flow"
+  exit 0
+fi
+
+if [[ "${1:-}" == "--select" ]]; then
+  if ! command -v wofi >/dev/null 2>&1; then
+    echo "wofi is required for --select mode."
+    exit 1
+  fi
+  shift || true
+  tag_filter=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --tag)
+        tag_filter="${2:-}"
+        shift 2
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+  mapfile -t scenes < <(list_scenes_filtered "${tag_filter}" | sort -u)
+  if [[ "${#scenes[@]}" -eq 0 ]]; then
+    echo "No scenes match filter."
+    exit 1
+  fi
+  prompt="Select animated scene"
+  [[ -n "${tag_filter}" ]] && prompt="Scenes [${tag_filter}]"
+  NAME="$(printf '%s\n' "${scenes[@]}" | wofi --dmenu --prompt "${prompt}")"
+  [[ -n "${NAME:-}" ]] || exit 0
+  launch_scene "${NAME}"
+  exit 0
+fi
+
+if [[ -n "${1:-}" ]]; then
+  launch_scene "$1"
+  exit 0
+fi
+
+echo "Available animated HTML wallpapers:"
+list_scenes_filtered "" | sort -u
+echo
+read -rp "Enter wallpaper folder name: " NAME
+launch_scene "${NAME}"

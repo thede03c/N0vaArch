@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+out_dir="/etc/novaarch"
+out_file="${out_dir}/oem-brand"
+mkdir -p "${out_dir}"
+
+brand="UNKNOWN OEM"
+if [[ -r /sys/class/dmi/id/board_vendor ]]; then
+  board_vendor="$(tr -d '\r\n' < /sys/class/dmi/id/board_vendor)"
+  [[ -n "${board_vendor}" ]] && brand="${board_vendor}"
+elif [[ -r /sys/class/dmi/id/sys_vendor ]]; then
+  sys_vendor="$(tr -d '\r\n' < /sys/class/dmi/id/sys_vendor)"
+  [[ -n "${sys_vendor}" ]] && brand="${sys_vendor}"
+fi
+
+printf '%s\n' "${brand}" > "${out_file}"
+echo "${brand}"

@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v wofi >/dev/null 2>&1; then
+  echo "wofi is required."
+  exit 1
+fi
+
+DEST_DIR="${HOME}/.config/novaarch/game-presets"
+mkdir -p "${DEST_DIR}"
+
+choice="$(
+cat <<'EOF' | wofi --dmenu --prompt 'Game Preset Templates'
+Esports High FPS
+AAA Quality
+VR Low Latency
+Copy Steam Launch Placeholder
+Open Preset Folder
+EOF
+)"
+
+[[ -n "${choice:-}" ]] || exit 0
+
+write_template() {
+  local name="$1"
+  local content="$2"
+  printf '%s\n' "${content}" > "${DEST_DIR}/${name}.txt"
+}
+
+case "${choice}" in
+  "Esports High FPS")
+    write_template "esports-high-fps" 'MANGOHUD=1 gamemoderun gamescope -f -r 240 -- %command%'
+    ;;
+  "AAA Quality")
+    write_template "aaa-quality" 'MANGOHUD=1 gamemoderun gamescope -f -F fsr -- %command%'
+    ;;
+  "VR Low Latency")
+    write_template "vr-low-latency" 'MANGOHUD=1 gamemoderun DXVK_FRAME_RATE=0 %command%'
+    ;;
+  "Copy Steam Launch Placeholder")
+    write_template "steam-placeholder" 'MANGOHUD=1 gamemoderun %command%'
+    ;;
+  "Open Preset Folder")
+    exec thunar "${DEST_DIR}"
+    ;;
+esac
+
+notify-send "NovaArch" "Preset saved to ${DEST_DIR}" >/dev/null 2>&1 || true

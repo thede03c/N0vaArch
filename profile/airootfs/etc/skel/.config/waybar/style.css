@@ -1,0 +1,59 @@
+* {
+  font-family: "JetBrainsMono Nerd Font", "DejaVu Sans", sans-serif;
+  font-size: 13px;
+  color: #f5f7fa;
+}
+
+window#waybar {
+  background: rgba(17, 19, 24, 0.88);
+  border-bottom: 1px solid rgba(214, 63, 63, 0.45);
+}
+
+#workspaces button {
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+}
+
+#workspaces button.active {
+  background: rgba(214, 63, 63, 0.22);
+}
+
+#clock,
+#custom-control-center,
+#custom-start-menu,
+#custom-pinned,
+#custom-updates,
+#pulseaudio,
+#network,
+#cpu,
+#memory {
+  margin: 0 8px;
+}
+
+#custom-updates.warn {
+  color: #ff9b9b;
+}
+
+#custom-updates.ok {
+  color: #8ee29b;
+}
+
+#custom-control-center {
+  color: #ffb3b3;
+}
+
+#custom-start-menu {
+  color: transparent;
+  font-size: 1px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0 6px;
+  background: no-repeat center;
+  background-size: 20px 20px;
+  background-image: url("../../.local/share/novaarch/waybar/launcher-icon.svg"); /* novaarch-waybar-bg */
+}
+
+#custom-pinned {
+  color: #b2c5ff;
+}

@@ -1,0 +1,128 @@
+# Base live system
+base
+linux-firmware
+linux-firmware-amdgpu
+linux-firmware-qcom
+linux-firmware-broadcom
+@KERNEL_PACKAGE@
+@KERNEL_HEADERS_PACKAGE@
+linux-lts
+linux-lts-headers
+mkinitcpio
+nano
+sudo
+networkmanager
+network-manager-applet
+bluez
+bluez-utils
+blueman
+iwd
+archinstall
+git
+curl
+wget
+reflector
+pacman-contrib
+less
+which
+rsync
+unzip
+
+# AMD / Intel CPU + GPU support
+amd-ucode
+intel-ucode
+mesa
+vulkan-radeon
+vulkan-intel
+lib32-mesa
+lib32-vulkan-radeon
+lib32-vulkan-intel
+xf86-video-amdgpu
+xf86-video-intel
+vulkan-tools
+mesa-utils
+
+# Gaming stack
+steam
+gamemode
+lib32-gamemode
+mangohud
+lib32-mangohud
+gamescope
+goverlay
+
+# Apps requested
+discord
+mullvad-vpn
+
+# Browser / utilities
+chromium
+xdg-utils
+zenity
+python-gobject
+python
+gtk3
+ripgrep
+flatpak
+spotify-launcher
+telegram-desktop
+
+# Theme / appearance (FIXED)
+lxappearance
+
+# Artwork (FIXED replacement)
+archlinux-wallpaper
+
+# System UI / desktop
+plymouth
+
+# Peripheral / RGB ecosystem
+ratbagd
+
+# Hardware tools
+usbutils
+hidapi
+
+# Wayland desktop stack
+hyprland
+xdg-desktop-portal-hyprland
+waybar
+wofi
+kitty
+konsole
+fish
+thunar
+thunar-archive-plugin
+file-roller
+grim
+slurp
+wl-clipboard
+swaybg
+swaylock
+polkit-gnome
+qt5-wayland
+qt6-wayland
+pipewire
+wireplumber
+pipewire-alsa
+pipewire-pulse
+pipewire-jack
+pavucontrol
+
+# System tools
+btop
+htop
+qps
+fastfetch
+lm_sensors
+cpupower
+
+# Login manager
+greetd
+greetd-tuigreet
+
+# Fonts
+ttf-jetbrains-mono-nerd
+ttf-dejavu
+noto-fonts
+noto-fonts-emoji

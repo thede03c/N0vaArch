@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh NovaArch Plymouth OEM label
+After=local-fs.target
+ConditionPathExists=/usr/share/plymouth/themes/novaarch/novaarch.script
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/novaarch-refresh-plymouth-oem
+
+[Install]
+WantedBy=multi-user.target

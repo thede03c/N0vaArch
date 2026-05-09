@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "NovaArch graphics validation"
+echo "==========================="
+echo
+
+if command -v vulkaninfo >/dev/null 2>&1; then
+  echo "[vulkaninfo] checking Vulkan runtime..."
+  vulkaninfo --summary >/tmp/novaarch-vulkan.txt 2>&1 || true
+  sed -n '1,40p' /tmp/novaarch-vulkan.txt
+else
+  echo "[vulkaninfo] missing (install vulkan-tools)"
+fi
+
+echo
+
+if command -v glxinfo >/dev/null 2>&1; then
+  echo "[glxinfo] checking OpenGL renderer..."
+  glxinfo -B >/tmp/novaarch-glx.txt 2>&1 || true
+  sed -n '1,40p' /tmp/novaarch-glx.txt
+else
+  echo "[glxinfo] missing (install mesa-utils)"
+fi
+
+echo
+echo "Done."

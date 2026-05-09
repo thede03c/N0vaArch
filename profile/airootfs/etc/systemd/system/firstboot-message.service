@@ -1,0 +1,13 @@
+[Unit]
+Description=Show custom firstboot notes
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/firstboot-message
+StandardOutput=tty
+TTYPath=/dev/tty1
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

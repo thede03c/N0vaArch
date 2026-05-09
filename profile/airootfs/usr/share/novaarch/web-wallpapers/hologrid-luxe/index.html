@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaArch Hologrid Luxe</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #070a10; }
+    canvas { width: 100vw; height: 100vh; display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    const c = document.getElementById("c");
+    const x = c.getContext("2d");
+    function sz() {
+      c.width = innerWidth * devicePixelRatio;
+      c.height = innerHeight * devicePixelRatio;
+      x.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+    addEventListener("resize", sz); sz();
+    let t = 0;
+    function run() {
+      t += 0.01;
+      const w = innerWidth, h = innerHeight;
+      x.fillStyle = "#070a10";
+      x.fillRect(0, 0, w, h);
+      const spacing = Math.max(24, Math.min(64, w / 38));
+      for (let gx = 0; gx < w + spacing; gx += spacing) {
+        for (let gy = 0; gy < h + spacing; gy += spacing) {
+          const p = Math.sin(gx * 0.02 + gy * 0.015 + t * 2);
+          x.fillStyle = `rgba(${120 + p * 80},${70 + p * 40},${140 + p * 60},0.18)`;
+          x.fillRect(gx, gy, 3 + p * 1.5, 3 + p * 1.5);
+        }
+      }
+      requestAnimationFrame(run);
+    }
+    run();
+  </script>
+</body>
+</html>

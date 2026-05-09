@@ -1,0 +1,4 @@
+# Shell/scripts must stay LF so Linux containers and bash don’t break on Windows checkouts.
+*.sh text eol=lf
+iso-config.env text eol=lf
+profiledef.sh.in text eol=lf

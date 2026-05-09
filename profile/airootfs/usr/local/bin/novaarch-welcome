@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if command -v python3 >/dev/null 2>&1; then
+  exec /usr/local/bin/novaarch-welcome-gtk
+fi
+
+echo "python3 is required for the GTK welcome app."
+exit 1

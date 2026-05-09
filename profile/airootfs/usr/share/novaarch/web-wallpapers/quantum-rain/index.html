@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaArch Quantum Rain</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #06080c; }
+    canvas { width: 100vw; height: 100vh; display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    const c = document.getElementById("c");
+    const x = c.getContext("2d");
+    function s() {
+      c.width = innerWidth * devicePixelRatio;
+      c.height = innerHeight * devicePixelRatio;
+      x.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+    addEventListener("resize", s); s();
+    const cols = () => Math.floor(innerWidth / 24);
+    let drops = [];
+    function init() { drops = Array.from({ length: cols() }, () => Math.random() * innerHeight); }
+    addEventListener("resize", init); init();
+    function draw() {
+      x.fillStyle = "rgba(6,8,12,0.22)";
+      x.fillRect(0, 0, innerWidth, innerHeight);
+      x.font = "16px monospace";
+      for (let i = 0; i < drops.length; i++) {
+        const y = drops[i];
+        const ch = String.fromCharCode(0x30A0 + (Math.random() * 96 | 0));
+        x.fillStyle = `rgba(214,63,63,${0.4 + Math.random() * 0.5})`;
+        x.fillText(ch, i * 24, y);
+        drops[i] = y > innerHeight + 20 ? Math.random() * -200 : y + 14;
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>

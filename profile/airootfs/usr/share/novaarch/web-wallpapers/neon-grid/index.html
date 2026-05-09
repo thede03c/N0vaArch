@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaArch Neon Grid</title>
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0d12;
+    }
+    canvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    const canvas = document.getElementById("c");
+    const ctx = canvas.getContext("2d");
+
+    function resize() {
+      canvas.width = window.innerWidth * devicePixelRatio;
+      canvas.height = window.innerHeight * devicePixelRatio;
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+    resize();
+    addEventListener("resize", resize);
+
+    let t = 0;
+    function draw() {
+      t += 0.008;
+      const w = innerWidth;
+      const h = innerHeight;
+
+      ctx.fillStyle = "#0a0d12";
+      ctx.fillRect(0, 0, w, h);
+
+      const grad = ctx.createRadialGradient(w * 0.8, h * 0.2, 20, w * 0.8, h * 0.2, h);
+      grad.addColorStop(0, "rgba(214,63,63,0.30)");
+      grad.addColorStop(1, "rgba(214,63,63,0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      const spacing = Math.max(28, Math.min(56, w / 42));
+      ctx.lineWidth = 1;
+
+      for (let x = 0; x < w + spacing; x += spacing) {
+        const alpha = 0.06 + 0.06 * Math.sin(t * 2 + x * 0.01);
+        ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y < h + spacing; y += spacing) {
+        const alpha = 0.05 + 0.05 * Math.cos(t * 2 + y * 0.01);
+        ctx.strokeStyle = `rgba(214,63,63,${alpha})`;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>

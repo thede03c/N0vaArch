@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaArch Dusk Shards</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #080a10; }
+    canvas { width: 100vw; height: 100vh; display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    const c = document.getElementById("c");
+    const x = c.getContext("2d");
+    function fit() {
+      c.width = innerWidth * devicePixelRatio;
+      c.height = innerHeight * devicePixelRatio;
+      x.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+    addEventListener("resize", fit); fit();
+    let t = 0;
+    function frame() {
+      t += 0.012;
+      x.fillStyle = "#080a10";
+      x.fillRect(0, 0, innerWidth, innerHeight);
+      for (let i = 0; i < 90; i++) {
+        const a = i * 0.21 + t;
+        const cx = (Math.sin(a * 1.2) * 0.45 + 0.5) * innerWidth;
+        const cy = (Math.cos(a * 0.9) * 0.45 + 0.5) * innerHeight;
+        const s = 20 + (i % 6) * 9;
+        x.save();
+        x.translate(cx, cy);
+        x.rotate(a);
+        x.fillStyle = `rgba(${214 - i % 50},${60 + i % 60},${80 + i % 80},0.18)`;
+        x.fillRect(-s * 0.5, -s * 0.5, s, s);
+        x.restore();
+      }
+      requestAnimationFrame(frame);
+    }
+    frame();
+  </script>
+</body>
+</html>

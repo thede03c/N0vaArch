@@ -1,0 +1,10 @@
+NAME="NovaArch"
+PRETTY_NAME="NovaArch Linux"
+ID=novaarch
+BUILD_ID=rolling
+ANSI_COLOR="38;2;200;50;50"
+HOME_URL="https://example.com/novaarch"
+DOCUMENTATION_URL="https://wiki.archlinux.org/"
+SUPPORT_URL="https://example.com/novaarch/support"
+BUG_REPORT_URL="https://example.com/novaarch/issues"
+LOGO=novaarch

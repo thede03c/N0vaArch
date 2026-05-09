@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "Run as root: sudo novaarch-gaming-preset"
+  exit 1
+fi
+
+echo "Applying NovaArch gaming/performance preset..."
+
+if command -v cpupower >/dev/null 2>&1; then
+  cpupower frequency-set -g performance >/dev/null 2>&1 || true
+fi
+
+sysctl --system >/dev/null 2>&1 || true
+systemctl restart systemd-oomd >/dev/null 2>&1 || true
+
+echo "Done."
+echo "- CPU governor: performance (if supported)"
+echo "- Sysctl profile reloaded"
+echo "- systemd-oomd restarted"

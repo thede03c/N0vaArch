@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "Run as root: sudo novaarch-wireless-repair"
+  exit 1
+fi
+
+rfkill unblock all || true
+systemctl restart bluetooth || true
+systemctl restart NetworkManager || true
+
+echo "Wireless services restarted."
+echo "Tip: use 'blueman-manager' for Bluetooth and 'nmtui' for Wi-Fi."

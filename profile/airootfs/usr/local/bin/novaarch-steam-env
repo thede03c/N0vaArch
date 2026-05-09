@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cat <<'EOF'
+Recommended Steam launch environment for Radeon (RADV) + high-end Ryzen:
+
+STEAM_RUNTIME=1 MANGOHUD=1 gamemoderun %command%
+
+Optional extras:
+- For OpenGL titles only: mesa_glthread=true STEAM_RUNTIME=1 MANGOHUD=1 gamemoderun %command%
+- If a game has stutter on first run, keep shader pre-caching enabled in Steam settings.
+
+System-level defaults are already tuned in NovaArch.
+EOF

@@ -1,0 +1,51 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 32,
+  "modules-left": ["custom/start-menu", "hyprland/workspaces"],
+  "modules-center": ["clock"],
+  "modules-right": ["custom/pinned", "custom/control-center", "custom/updates", "pulseaudio", "network", "cpu", "memory", "tray"],
+  "custom/control-center": {
+    "format": "CTL",
+    "tooltip": true,
+    "tooltip-format": "Open NovaArch Control Center",
+    "on-click": "/usr/local/bin/novaarch-control-center"
+  },
+  "custom/pinned": {
+    "format": "",
+    "tooltip": true,
+    "tooltip-format": "Pinned apps launcher",
+    "on-click": "/usr/local/bin/novaarch-pinned-launcher"
+  },
+  "custom/start-menu": {
+    "format": "·",
+    "tooltip": true,
+    "tooltip-format": "Open app menu — type here to search",
+    "on-click": "/usr/local/bin/novaarch-start-menu"
+  },
+  "custom/updates": {
+    "return-type": "json",
+    "format": "{}",
+    "interval": 900,
+    "exec": "/usr/local/bin/novaarch-check-updates",
+    "on-click": "/usr/local/bin/novaarch-system-update"
+  },
+
+  "clock": {
+    "format": "{:%a %d %b  %H:%M}"
+  },
+  "network": {
+    "format-wifi": "WiFi {signalStrength}%",
+    "format-ethernet": "LAN",
+    "format-disconnected": "Offline"
+  },
+  "pulseaudio": {
+    "format": "Vol {volume}%"
+  },
+  "cpu": {
+    "format": "CPU {usage}%"
+  },
+  "memory": {
+    "format": "RAM {}%"
+  }
+}
