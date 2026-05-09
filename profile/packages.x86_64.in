@@ -28,6 +28,7 @@ less
 which
 rsync
 unzip
+pv
 
 # AMD / Intel CPU + GPU support
 amd-ucode

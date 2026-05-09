@@ -82,21 +82,20 @@ jobs:
             -extract "/novaarch/boot/x86_64/vmlinuz-${KERNEL_BASENAME}" qemu-extract/vmlinuz \
             -extract "/novaarch/boot/x86_64/initramfs-${KERNEL_BASENAME}.img" qemu-extract/initramfs.img
 
-          ISO_LABEL="$(xorriso -indev "$ISO_PATH" -pvd_info 2>/dev/null | sed -n 's/^Volume id *: *//p' | tail -n1 | tr -d '\r')"
+          ISO_LABEL="$(xorriso -indev "$ISO_PATH" -pvd_info 2>&1 | sed -n "s/.*Volume id[[:space:]]*:[[:space:]]*'\\([^']*\\)'.*/\\1/p" | tail -n1 | tr -d '\r')"
           if [ -z "$ISO_LABEL" ]; then
             echo "Failed to detect ISO volume label"
             exit 1
           fi
           echo "Detected ISO label: $ISO_LABEL"
 
-          # Smoke boot: direct kernel+initramfs boot with serial console enabled
-          # so CI can assert we reached late boot targets.
-          timeout 240s qemu-system-x86_64 \
-            -m 4096 -smp 2 \
+          # Smoke boot: matches USB cmdline incl. copytoram=y (whole squashfs copied to RAM); needs RAM for large airootfs.
+          timeout 360s qemu-system-x86_64 \
+            -m 6144 -smp 2 \
             -cdrom "$ISO_PATH" \
             -kernel qemu-extract/vmlinuz \
             -initrd qemu-extract/initramfs.img \
-            -append "archisobasedir=novaarch archisolabel=$ISO_LABEL systemd.gpt_auto=no console=ttyS0,115200 loglevel=3" \
+            -append "archisobasedir=novaarch archisolabel=$ISO_LABEL copytoram=y systemd.gpt_auto=no console=ttyS0,115200 loglevel=3" \
             -nographic -no-reboot \
             | tee qemu-serial.log || true
 

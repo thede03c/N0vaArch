@@ -115,8 +115,8 @@ cp "${LOADER_CONF}" "${LOADER_CONF_BAK}"
 trap 'cp "${ENTRY_PRIMARY_BAK}" "${ENTRY_PRIMARY}"; cp "${ENTRY_FALLBACK_BAK}" "${ENTRY_FALLBACK}"; cp "${LOADER_CONF_BAK}" "${LOADER_CONF}"; rm -f "${ENTRY_PRIMARY_BAK}" "${ENTRY_FALLBACK_BAK}" "${LOADER_CONF_BAK}"' EXIT
 
 sed -i "s|^title .*|title ${PRIMARY_TITLE}|" "${ENTRY_PRIMARY}"
-sed -i "s|^linux .*|linux /%INSTALL_DIR%/boot/x86_64/vmlinuz-${PRIMARY_KERNEL_BASENAME#linux-}|" "${ENTRY_PRIMARY}"
-sed -i "s|^initrd .*|initrd /%INSTALL_DIR%/boot/x86_64/initramfs-${PRIMARY_KERNEL_BASENAME#linux-}.img|" "${ENTRY_PRIMARY}"
+sed -i "s|^linux .*|linux /%INSTALL_DIR%/boot/x86_64/vmlinuz-${PRIMARY_KERNEL_BASENAME}|" "${ENTRY_PRIMARY}"
+sed -i "s|^initrd .*|initrd /%INSTALL_DIR%/boot/x86_64/initramfs-${PRIMARY_KERNEL_BASENAME}.img|" "${ENTRY_PRIMARY}"
 
 # Track-specific boot menu behavior:
 # - zen/lts: single deterministic entry
