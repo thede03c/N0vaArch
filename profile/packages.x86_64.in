@@ -55,6 +55,18 @@ goverlay
 discord
 mullvad-vpn
 
+# Virtualization (KVM/libvirt stack)
+virt-manager
+qemu-full
+libvirt
+edk2-ovmf
+dnsmasq
+bridge-utils
+vde2
+virt-install
+virt-viewer
+swtpm
+
 # Browser / utilities
 chromium
 xdg-utils

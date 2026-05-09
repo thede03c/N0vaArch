@@ -5,6 +5,7 @@ systemctl enable NetworkManager
 systemctl enable bluetooth
 systemctl enable firstboot-message.service
 systemctl enable greetd
+systemctl enable libvirtd
 systemctl enable systemd-oomd
 systemctl enable fstrim.timer
 systemctl enable novaarch-plymouth-oem.service
