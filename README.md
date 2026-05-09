@@ -49,9 +49,8 @@ Use one of these methods:
      - `sudo ./scripts/build-iso.sh`
 2. GitHub Actions build (no local Linux needed)
   - Workflow file: `.github/workflows/build-iso.yml`
-  - Trigger manually from Actions tab (`Build NovaArch ISO`) and choose `kernel_track` (`zen`, `cachy`, `lts`).
-   - Download generated ISO artifact.
-  - Verify with `SHA256SUMS.txt`.
+  - Trigger manually from Actions tab (`Build ISO`) and choose `kernel_track` (`zen`, `cachy`, `lts`).
+  - Download generated ISO artifact + `SHA256SUMS.txt`.
 
 ## Quick customization
 
@@ -146,7 +145,7 @@ sudo ./scripts/build-iso.sh
 ## GitHub Actions release flow
 
 1. Push your branch to GitHub.
-2. Open Actions -> `Build NovaArch ISO`.
+2. Open Actions -> `Build ISO`.
 3. Run workflow and pick `kernel_track` (`zen`, `cachy`, `lts`).
 4. Download artifact bundle (`*.iso` + `SHA256SUMS.txt`).
 5. Verify checksum locally:

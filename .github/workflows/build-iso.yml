@@ -4,6 +4,16 @@ name: Build ISO
 
 on:
   workflow_dispatch:
+    inputs:
+      kernel_track:
+        description: "Kernel track (zen, lts, cachy)"
+        required: true
+        default: "zen"
+        type: choice
+        options:
+          - zen
+          - lts
+          - cachy
 
 jobs:
   iso:
@@ -23,11 +33,16 @@ jobs:
         run: chmod +x ./scripts/*.sh
 
       - name: Build ISO
-        run: bash ./scripts/build-iso.sh --native
+        run: KERNEL_TRACK='${{ inputs.kernel_track }}' bash ./scripts/build-iso.sh --native
+
+      - name: Generate checksums
+        run: sha256sum out/*.iso | tee out/SHA256SUMS.txt
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
         with:
           name: novaarch-iso
-          path: out/*.iso
+          path: |
+            out/*.iso
+            out/SHA256SUMS.txt
           if-no-files-found: error

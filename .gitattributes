@@ -2,3 +2,7 @@
 *.sh text eol=lf
 iso-config.env text eol=lf
 profiledef.sh.in text eol=lf
+
+# These are executable scripts in the live ISO (most have no .sh extension).
+profile/airootfs/usr/local/bin/* text eol=lf
+profile/airootfs/root/*.sh text eol=lf
