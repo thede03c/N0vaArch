@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=NovaArch Control Center
+Comment=Quick actions and maintenance
+Exec=/usr/local/bin/novaarch-control-center-autostart
+Icon=preferences-system
+X-GNOME-Autostart-enabled=true

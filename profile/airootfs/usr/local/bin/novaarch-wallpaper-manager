@@ -13,13 +13,37 @@ apply_wallpaper() {
   local file="$1"
   [[ -f "${file}" ]] || return 1
   pkill -f "chromium --kiosk --app=file:///usr/share/novaarch/web-wallpapers" >/dev/null 2>&1 || true
-  pkill -x swaybg >/dev/null 2>&1 || true
-  swaybg -i "${file}" -m fill >/dev/null 2>&1 &
   printf '%s\n' "${file}" >"${STATIC_FILE}"
   echo "1" >"${DISABLE_ANIMATED_FILE}"
+
+  if command -v python3 >/dev/null 2>&1 && command -v qdbus6 >/dev/null 2>&1; then
+    export WALL_FILE="${file}"
+    python3 <<'PY'
+import os, subprocess
+from pathlib import Path
+p = Path(os.environ["WALL_FILE"]).resolve()
+uri = p.as_uri().replace("\\", "\\\\").replace("'", "\\'")
+script = f"""
+var allDesktops = desktops();
+for (var i = 0; i < allDesktops.length; i++) {{
+  var d = allDesktops[i];
+  d.wallpaperPlugin = 'org.kde.image';
+  d.currentConfigGroup = Array('Wallpaper', 'org.kde.image', 'General');
+  d.writeConfig('Image', '{uri}');
+}}
+"""
+subprocess.run(
+    ["qdbus6", "org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell.evaluateScript", script],
+    check=False,
+)
+PY
+    return 0
+  fi
+
+  command -v notify-send >/dev/null 2>&1 && notify-send "NovaArch" "Wallpaper path saved. Open System Settings → Wallpaper to apply: ${file}"
 }
 
-enumerate_for_wofi() {
+enumerate_pick() {
   local mf="$1" tag="$2"
   WANT_TAG="${tag}" MF_PATH="${mf}" DEF_DIR="${DEFAULT_DIR}" python3 <<'PY'
 import json, os, pathlib
@@ -62,27 +86,27 @@ PY
 pick_default() {
   local manifest="${DEFAULT_DIR}/wallpapers-manifest.json"
   local tag=""
-  if [[ -f "${manifest}" ]] && command -v wofi >/dev/null 2>&1; then
+  if [[ -f "${manifest}" ]] && { command -v zenity >/dev/null 2>&1 || command -v kdialog >/dev/null 2>&1; }; then
     if tags="$(list_manifest_tags "${manifest}" 2>/dev/null)" && [[ -n "${tags}" ]]; then
       tag="$(
         {
           printf '%s\n' "all"
           printf '%s\n' "${tags}"
-        } | wofi --dmenu --insensitive --prompt 'Wallpaper tags (manifest)'
+        } | /usr/local/bin/novaarch-dmenu --prompt 'Wallpaper tags (manifest)' || true
       )"
       [[ "${tag}" == "all" ]] && tag=""
     fi
   fi
 
   local pick
-  mapfile -t pick < <(enumerate_for_wofi "${manifest:-/dev/null}" "${tag}")
+  mapfile -t pick < <(enumerate_pick "${manifest:-/dev/null}" "${tag}")
 
   [[ "${#pick[@]}" -eq 0 ]] && {
-    mapfile -t pick < <(enumerate_for_wofi "/dev/null" "")
+    mapfile -t pick < <(enumerate_pick "/dev/null" "")
   }
 
   local selected
-  selected="$(printf '%s\n' "${pick[@]}" | wofi --dmenu --prompt 'Default wallpaper')" || true
+  selected="$(printf '%s\n' "${pick[@]}" | /usr/local/bin/novaarch-dmenu --prompt 'Default wallpaper')" || true
   [[ -n "${selected:-}" ]] || exit 0
 
   local path_disp="${selected%%|*}"
@@ -130,16 +154,22 @@ if [[ "${1:-}" == "--restore-last" ]]; then
   exit 0
 fi
 
-choice="$(cat <<'EOF' | wofi --dmenu --prompt 'NovaArch Wallpaper'
+choice="$(
+cat <<'EOF' | /usr/local/bin/novaarch-dmenu --prompt 'NovaArch Wallpaper'
 Use Default Wallpaper
 Import Custom Wallpaper
 Open Wallpaper Folder
 EOF
-)"
+)" || exit 0
 [[ -n "${choice:-}" ]] || exit 0
 
 case "${choice}" in
   "Use Default Wallpaper") pick_default ;;
   "Import Custom Wallpaper") import_custom ;;
-  "Open Wallpaper Folder") exec thunar "${USER_DIR}" ;;
+  "Open Wallpaper Folder")
+    if command -v dolphin >/dev/null 2>&1; then
+      exec dolphin "${USER_DIR}"
+    fi
+    exec /usr/local/bin/novaarch-terminal --title "Wallpapers" -- sh -lc "cd \"${USER_DIR}\" && ${SHELL:-bash}"
+    ;;
 esac

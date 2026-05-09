@@ -8,8 +8,8 @@ selection="$(
   rg --files "${pinned_dir}" -g "*.desktop" \
     | sed 's|.*/||' \
     | sort \
-    | wofi --dmenu --prompt "Pinned Apps"
-)"
+    | /usr/local/bin/novaarch-dmenu --prompt "Pinned Apps"
+)" || exit 0
 [[ -n "${selection:-}" ]] || exit 0
 
 desktop_id="${selection}"

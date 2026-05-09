@@ -11,4 +11,4 @@ systemctl restart bluetooth || true
 systemctl restart NetworkManager || true
 
 echo "Wireless services restarted."
-echo "Tip: use 'blueman-manager' for Bluetooth and 'nmtui' for Wi-Fi."
+echo "Tip: use KDE Bluetooth settings or 'bluedevil-wizard', and 'nmtui' or the Network applet for Wi‑Fi."

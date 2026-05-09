@@ -10,7 +10,6 @@ APPS = [
     ("Firefox", "pacman", "firefox", "firefox"),
     ("Chromium", "pacman", "chromium", "chromium"),
     ("Falkon", "pacman", "falkon", "applications-internet"),
-    ("Brave", "flatpak", "com.brave.Browser", "applications-internet"),
     ("Discord", "pacman", "discord", "discord"),
     ("Spotify", "pacman", "spotify-launcher", "multimedia-player"),
     ("Telegram", "pacman", "telegram-desktop", "telegram"),
@@ -34,9 +33,10 @@ APPS = [
 def run_terminal(command: str, title: str) -> None:
     subprocess.Popen(
         [
-            "kitty",
+            "/usr/local/bin/novaarch-terminal",
             "--title",
             title,
+            "--",
             "sh",
             "-lc",
             command + "; echo; read -rp 'Press Enter to close...' _",

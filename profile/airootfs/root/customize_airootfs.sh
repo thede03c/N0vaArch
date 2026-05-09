@@ -4,13 +4,13 @@ set -euo pipefail
 systemctl enable NetworkManager
 systemctl enable bluetooth
 systemctl enable firstboot-message.service
-systemctl enable greetd
+systemctl enable sddm
 systemctl enable libvirtd
 systemctl enable systemd-oomd
 systemctl enable fstrim.timer
 systemctl enable novaarch-plymouth-oem.service
 
-# Passwordless ISO user "live" — greetd autologins into Hyprland (see /etc/greetd/config.toml).
+# Passwordless ISO user "live" — SDDM autologin into Plasma (see /etc/sddm.conf.d/autologin.conf).
 # Final username/password/timezone/language only appear in Calamares after networking works.
 sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 sed -i 's/^#Color/Color/' /etc/pacman.conf
@@ -35,9 +35,9 @@ chmod 0440 /etc/sudoers.d/05-novaarch-live-calamares
 mkdir -p /usr/share/novaarch
 
 if [[ -f /usr/share/icons/archlinux-icon-crystal/archlinux-logo-crystal-normal.svg ]]; then
-  mkdir -p /etc/skel/.local/share/novaarch/waybar
+  mkdir -p /etc/skel/.local/share/novaarch
   cp -f /usr/share/icons/archlinux-icon-crystal/archlinux-logo-crystal-normal.svg \
-    /etc/skel/.local/share/novaarch/waybar/launcher-icon.svg
+    /etc/skel/.local/share/novaarch/launcher-icon.svg
 fi
 
 chmod +x /usr/local/bin/novaarch-create-user
@@ -79,6 +79,8 @@ chmod +x /usr/local/bin/novaarch-countdown-timer
 chmod +x /usr/local/bin/novaarch-start-menu
 chmod +x /usr/local/bin/novaarch-apply-start-icon
 chmod +x /usr/local/bin/novaarch-reload-waybar
+chmod +x /usr/local/bin/novaarch-dmenu
+chmod +x /usr/local/bin/novaarch-terminal
 
 /usr/local/bin/novaarch-detect-oem >/dev/null 2>&1 || true
 /usr/local/bin/novaarch-refresh-plymouth-oem >/dev/null 2>&1 || true

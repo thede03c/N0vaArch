@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if ! command -v wofi >/dev/null 2>&1; then
-  echo "wofi is required."
+if ! command -v zenity >/dev/null 2>&1 && ! command -v kdialog >/dev/null 2>&1; then
+  echo "zenity or kdialog is required."
   exit 1
 fi
 
@@ -16,9 +16,6 @@ cat <<'EOF'
 App Installer
 Package Updates
 Richer Monitor
-Gaming Preset
-Steam Launch Help
-Game Preset Templates
 NovaArch Tweaks
 Wallpaper Scene
 Wallpaper Manager
@@ -27,19 +24,19 @@ Desktop Clock Widget
 Countdown Timer
 Open Trash
 App Shortcuts and Pinning
-Bluetooth Manager
-Display · focus next monitor
-Display · move workspace to next monitor
-Network TUI
-Process Manager (GUI)
-Process Manager (CLI)
+Bluetooth
+Display and Monitor
+KDE System Settings
+Network (nmtui)
+Process Monitor (GUI)
+Process Monitor (CLI)
 Boot Branding Toggle
 Open Settings Folder
-Toggle Boot Autostart
+Toggle Control Center Autostart
 EOF
 )"
 
-choice="$(printf '%s\n' "${menu}" | wofi --dmenu --prompt 'NovaArch Control Center')"
+choice="$(printf '%s\n' "${menu}" | /usr/local/bin/novaarch-dmenu --prompt 'NovaArch Control Center')" || exit 0
 [[ -n "${choice:-}" ]] || exit 0
 
 case "${choice}" in
@@ -51,15 +48,6 @@ case "${choice}" in
     ;;
   "Richer Monitor")
     exec /usr/local/bin/novaarch-monitor
-    ;;
-  "Gaming Preset")
-    exec kitty --title "NovaArch Gaming Preset" sh -lc 'sudo novaarch-gaming-preset; echo; read -rp "Press Enter to close..." _'
-    ;;
-  "Steam Launch Help")
-    exec kitty --title "Steam Launch Help" sh -lc 'novaarch-steam-env; echo; read -rp "Press Enter to close..." _'
-    ;;
-  "Game Preset Templates")
-    exec /usr/local/bin/novaarch-game-presets
     ;;
   "NovaArch Tweaks")
     exec /usr/local/bin/novaarch-tweaks
@@ -85,35 +73,46 @@ case "${choice}" in
   "App Shortcuts and Pinning")
     exec /usr/local/bin/novaarch-app-shortcuts
     ;;
-  "Bluetooth Manager")
-    exec blueman-manager
+  "Bluetooth")
+    if command -v bluedevil-wizard >/dev/null 2>&1; then
+      exec bluedevil-wizard
+    fi
+    exec /usr/local/bin/novaarch-ui-customizer
     ;;
-  "Display · focus next monitor")
-    hyprctl dispatch focusmonitor +1 >/dev/null 2>&1 || true
-    command -v notify-send >/dev/null 2>&1 && notify-send "NovaArch" "Focused next monitor (Super+] or Super+Shift+Tab)"
-    exit 0
+  "Display and Monitor")
+    if command -v kcmshell6 >/dev/null 2>&1; then
+      exec kcmshell6 kcm_kscreen
+    fi
+    if command -v kcmshell5 >/dev/null 2>&1; then
+      exec kcmshell5 kcm_kscreen
+    fi
+    exec /usr/local/bin/novaarch-ui-customizer
     ;;
-  "Display · move workspace to next monitor")
-    hyprctl dispatch movecurrentworkspacetomonitor +1 >/dev/null 2>&1 || true
-    command -v notify-send >/dev/null 2>&1 && notify-send "NovaArch" "Moved workspace — Super+Shift+]"
-    exit 0
+  "KDE System Settings")
+    exec /usr/local/bin/novaarch-ui-customizer
     ;;
-  "Network TUI")
-    exec kitty --title "Network Manager" nmtui
+  "Network (nmtui)")
+    exec /usr/local/bin/novaarch-terminal --title "Network Manager" -- nmtui
     ;;
-  "Process Manager (GUI)")
-    exec qps
+  "Process Monitor (GUI)")
+    if command -v plasma-systemmonitor >/dev/null 2>&1; then
+      exec plasma-systemmonitor
+    fi
+    exec /usr/local/bin/novaarch-terminal --title "btop" -- btop
     ;;
-  "Process Manager (CLI)")
-    exec kitty --title "Process Manager" btop
+  "Process Monitor (CLI)")
+    exec /usr/local/bin/novaarch-terminal --title "Process Monitor" -- btop
     ;;
   "Boot Branding Toggle")
-    exec kitty --title "Boot Branding" sh -lc 'current="$(novaarch-plymouth-toggle status)"; if [[ "${current}" == "enabled" ]]; then sudo novaarch-plymouth-toggle off; else sudo novaarch-plymouth-toggle on; fi; echo; novaarch-plymouth-toggle status; read -rp "Press Enter to close..." _'
+    exec /usr/local/bin/novaarch-terminal --title "Boot Branding" -- sh -lc 'current="$(novaarch-plymouth-toggle status)"; if [[ "${current}" == "enabled" ]]; then sudo novaarch-plymouth-toggle off; else sudo novaarch-plymouth-toggle on; fi; echo; novaarch-plymouth-toggle status; read -rp "Press Enter to close..." _'
     ;;
   "Open Settings Folder")
-    exec thunar "${HOME}/.config"
+    if command -v dolphin >/dev/null 2>&1; then
+      exec dolphin "${HOME}/.config"
+    fi
+    exec /usr/local/bin/novaarch-terminal --title "Config" -- sh -lc "cd \"${HOME}/.config\" && ${SHELL:-bash}"
     ;;
-  "Toggle Boot Autostart")
+  "Toggle Control Center Autostart")
     current="$(tr -d '\r\n' < "${AUTO_FILE}")"
     if [[ "${current}" == "1" ]]; then
       echo "0" > "${AUTO_FILE}"

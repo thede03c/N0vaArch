@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Read newline-separated choices from stdin; print the chosen line to stdout.
+set -euo pipefail
+
+prompt="Select"
+if [[ "${1:-}" == "--prompt" ]]; then
+  prompt="${2:-Select}"
+  shift 2 || true
+fi
+
+mapfile -t lines
+if [[ ${#lines[@]} -eq 0 ]]; then
+  exit 1
+fi
+
+if command -v zenity >/dev/null 2>&1; then
+  zenity --list --title="NovaArch" --text="${prompt}" --hide-header --column="" "${lines[@]}"
+elif command -v kdialog >/dev/null 2>&1; then
+  args=()
+  for i in "${!lines[@]}"; do
+    args+=("$i" "${lines[$i]}")
+  done
+  idx="$(kdialog --menu "${prompt}" "${args[@]}")"
+  printf '%s\n' "${lines[$idx]}"
+else
+  PS3="${prompt}> "
+  select c in "${lines[@]}"; do
+    [[ -n "${c:-}" ]] || exit 1
+    printf '%s\n' "$c"
+    break
+  done
+fi

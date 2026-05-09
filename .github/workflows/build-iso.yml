@@ -98,7 +98,7 @@ jobs:
             -nographic -no-reboot \
             | tee qemu-serial.log || true
 
-          if grep -E "Reached target (Graphical Interface|Multi-User System|Login Prompts)|Started Getty on tty1|greetd" qemu-serial.log; then
+          if grep -E "Reached target (Graphical Interface|Multi-User System|Login Prompts)|Started Getty on tty1|sddm|Starting.*sddm" qemu-serial.log; then
             echo "QEMU smoke boot passed"
             exit 0
           fi

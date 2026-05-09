@@ -1,3 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-exec thunar trash:///
+
+if command -v dolphin >/dev/null 2>&1; then
+  exec dolphin trash:/
+fi
+echo "Install dolphin for Trash in the file manager." >&2
+exit 1

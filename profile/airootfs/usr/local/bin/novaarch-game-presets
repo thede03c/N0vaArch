@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if ! command -v wofi >/dev/null 2>&1; then
-  echo "wofi is required."
+if ! command -v zenity >/dev/null 2>&1 && ! command -v kdialog >/dev/null 2>&1; then
+  echo "zenity or kdialog is required."
   exit 1
 fi
 
@@ -10,14 +10,14 @@ DEST_DIR="${HOME}/.config/novaarch/game-presets"
 mkdir -p "${DEST_DIR}"
 
 choice="$(
-cat <<'EOF' | wofi --dmenu --prompt 'Game Preset Templates'
+cat <<'EOF' | /usr/local/bin/novaarch-dmenu --prompt 'Game Preset Templates'
 Esports High FPS
 AAA Quality
 VR Low Latency
 Copy Steam Launch Placeholder
 Open Preset Folder
 EOF
-)"
+)" || exit 0
 
 [[ -n "${choice:-}" ]] || exit 0
 
@@ -41,7 +41,10 @@ case "${choice}" in
     write_template "steam-placeholder" 'MANGOHUD=1 gamemoderun %command%'
     ;;
   "Open Preset Folder")
-    exec thunar "${DEST_DIR}"
+    if command -v dolphin >/dev/null 2>&1; then
+      exec dolphin "${DEST_DIR}"
+    fi
+    exec /usr/local/bin/novaarch-terminal --title "Presets" -- sh -lc "cd \"${DEST_DIR}\" && ${SHELL:-bash}"
     ;;
 esac
 

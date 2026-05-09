@@ -72,8 +72,8 @@ if [[ "${1:-}" == "--last" ]]; then
 fi
 
 if [[ "${1:-}" == "--select" ]]; then
-  if ! command -v wofi >/dev/null 2>&1; then
-    echo "wofi is required for --select mode."
+  if ! command -v zenity >/dev/null 2>&1 && ! command -v kdialog >/dev/null 2>&1; then
+    echo "zenity or kdialog is required for --select mode."
     exit 1
   fi
   shift || true
@@ -96,7 +96,7 @@ if [[ "${1:-}" == "--select" ]]; then
   fi
   prompt="Select animated scene"
   [[ -n "${tag_filter}" ]] && prompt="Scenes [${tag_filter}]"
-  NAME="$(printf '%s\n' "${scenes[@]}" | wofi --dmenu --prompt "${prompt}")"
+  NAME="$(printf '%s\n' "${scenes[@]}" | /usr/local/bin/novaarch-dmenu --prompt "${prompt}")" || exit 0
   [[ -n "${NAME:-}" ]] || exit 0
   launch_scene "${NAME}"
   exit 0

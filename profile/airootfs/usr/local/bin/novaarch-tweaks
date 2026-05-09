@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if ! command -v wofi >/dev/null 2>&1; then
-  echo "wofi is required."
+if ! command -v zenity >/dev/null 2>&1 && ! command -v kdialog >/dev/null 2>&1; then
+  echo "zenity or kdialog is required."
   exit 1
 fi
 
 choice="$(
-cat <<'EOF' | wofi --dmenu --prompt 'NovaArch Tweaks'
+cat <<'EOF' | /usr/local/bin/novaarch-dmenu --prompt 'NovaArch Tweaks'
 Set CPU Governor: performance
 Set CPU Governor: schedutil
 Enable RT Priority for Audio
@@ -15,27 +15,27 @@ Disable RT Priority for Audio
 Apply Gaming Preset Now
 Restore Balanced Sysctl
 EOF
-)"
+)" || exit 0
 
 [[ -n "${choice:-}" ]] || exit 0
 
 case "${choice}" in
   "Set CPU Governor: performance")
-    exec kitty --title "NovaArch Tweaks" sh -lc 'sudo cpupower frequency-set -g performance; read -rp "Done. Press Enter..." _'
+    exec /usr/local/bin/novaarch-terminal --title "NovaArch Tweaks" -- sh -lc 'sudo cpupower frequency-set -g performance; read -rp "Done. Press Enter..." _'
     ;;
   "Set CPU Governor: schedutil")
-    exec kitty --title "NovaArch Tweaks" sh -lc 'sudo cpupower frequency-set -g schedutil; read -rp "Done. Press Enter..." _'
+    exec /usr/local/bin/novaarch-terminal --title "NovaArch Tweaks" -- sh -lc 'sudo cpupower frequency-set -g schedutil; read -rp "Done. Press Enter..." _'
     ;;
   "Enable RT Priority for Audio")
-    exec kitty --title "NovaArch Tweaks" sh -lc 'echo "@audio - rtprio 95" | sudo tee /etc/security/limits.d/95-novaarch-audio.conf; echo "@audio - memlock unlimited" | sudo tee -a /etc/security/limits.d/95-novaarch-audio.conf; echo "Applied."; read -rp "Press Enter..." _'
+    exec /usr/local/bin/novaarch-terminal --title "NovaArch Tweaks" -- sh -lc 'echo "@audio - rtprio 95" | sudo tee /etc/security/limits.d/95-novaarch-audio.conf; echo "@audio - memlock unlimited" | sudo tee -a /etc/security/limits.d/95-novaarch-audio.conf; echo "Applied."; read -rp "Press Enter..." _'
     ;;
   "Disable RT Priority for Audio")
-    exec kitty --title "NovaArch Tweaks" sh -lc 'sudo rm -f /etc/security/limits.d/95-novaarch-audio.conf; echo "Removed."; read -rp "Press Enter..." _'
+    exec /usr/local/bin/novaarch-terminal --title "NovaArch Tweaks" -- sh -lc 'sudo rm -f /etc/security/limits.d/95-novaarch-audio.conf; echo "Removed."; read -rp "Press Enter..." _'
     ;;
   "Apply Gaming Preset Now")
-    exec kitty --title "NovaArch Tweaks" sh -lc 'sudo novaarch-gaming-preset; read -rp "Press Enter..." _'
+    exec /usr/local/bin/novaarch-terminal --title "NovaArch Tweaks" -- sh -lc 'sudo novaarch-gaming-preset; read -rp "Press Enter..." _'
     ;;
   "Restore Balanced Sysctl")
-    exec kitty --title "NovaArch Tweaks" sh -lc 'sudo sysctl --system; echo "Reloaded active sysctl config."; read -rp "Press Enter..." _'
+    exec /usr/local/bin/novaarch-terminal --title "NovaArch Tweaks" -- sh -lc 'sudo sysctl --system; echo "Reloaded active sysctl config."; read -rp "Press Enter..." _'
     ;;
 esac

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=NovaArch Welcome
+Comment=First-run tips and installer launcher
+Exec=/usr/local/bin/novaarch-welcome-autostart
+Icon=preferences-desktop
+X-GNOME-Autostart-enabled=true

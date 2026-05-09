@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Prefer Konsole on KDE Plasma. Usage: novaarch-terminal [--title T] -- <argv...>
+set -euo pipefail
+
+title=""
+if [[ "${1:-}" == "--title" ]]; then
+  title="$2"
+  shift 2
+fi
+if [[ "${1:-}" == "--" ]]; then
+  shift
+fi
+if [[ $# -eq 0 ]]; then
+  set -- "${SHELL:-/bin/bash}"
+fi
+
+if command -v konsole >/dev/null 2>&1; then
+  if [[ -n "${title}" ]]; then
+    exec konsole --title "${title}" -e "$@"
+  fi
+  exec konsole -e "$@"
+fi
+if command -v xterm >/dev/null 2>&1; then
+  exec xterm -title "${title:-Terminal}" -e "$@"
+fi
+echo "novaarch-terminal: no konsole or xterm found." >&2
+exit 1

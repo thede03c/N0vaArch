@@ -4,13 +4,11 @@ set -euo pipefail
 prompt="${NOVAARCH_START_MENU_PROMPT:-Type here to search}"
 mode="${NOVAARCH_START_MENU_MODE:-unified}"
 
-if ! command -v wofi >/dev/null 2>&1; then
-  echo "wofi is required."
-  exit 1
-fi
-
 run_drun() {
-  exec wofi --show drun --allow-images --prompt "${prompt}" "$@"
+  if command -v krunner >/dev/null 2>&1; then
+    exec krunner
+  fi
+  mode="unified"
 }
 
 cache_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/novaarch"
@@ -71,7 +69,7 @@ run_unified() {
     done <"${exe_cache}" >>"${menu}"
   fi
 
-  pick="$(LC_ALL=C sort -f -u "${menu}" | wofi --dmenu --insensitive --prompt "${prompt}")"
+  pick="$(LC_ALL=C sort -f -u "${menu}" | /usr/local/bin/novaarch-dmenu --prompt "${prompt}")" || exit 0
   [[ -n "${pick}" ]] || exit 0
 
   if [[ "${pick}" == *' (command)' ]]; then

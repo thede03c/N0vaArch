@@ -54,7 +54,7 @@ fi
 show_info "$(printf '%s\n%s\n%s\n%s' \
   "NovaArch uses Arch's guided installer (archinstall) in a terminal window." \
   "You will choose language, disks, bootloader, timezone, hostname, username, and password there." \
-  "Super + [ and Super + ] switch which monitor has keyboard focus; Super+Shift+[ / ] moves the workspace to another screen." \
+  "Displays and window behavior: open System Settings (Meta → search Settings) → Workspace or Window Management." \
   "Tip: do not reuse the disposable live login for your installed account password.")"
 
 readonly term_title="NovaArch Install (archinstall)"
@@ -64,13 +64,11 @@ readonly inner='status=0; sudo -E archinstall || status=$?;
   fi
   printf "\nPress Enter to close this window...\n"; read -r _'
 
-if command -v kitty >/dev/null 2>&1; then
-  exec kitty --title "${term_title}" sh -lc "${inner}"
-elif command -v konsole >/dev/null 2>&1; then
+if command -v konsole >/dev/null 2>&1; then
   exec konsole --title "${term_title}" -e sh -lc "${inner}"
 elif command -v xterm >/dev/null 2>&1; then
   exec xterm -title "${term_title}" -e sh -lc "${inner}"
 else
-  show_error "No terminal emulator found (kitty, konsole, xterm)."
+  show_error "No terminal emulator found (konsole, xterm)."
   exit 1
 fi

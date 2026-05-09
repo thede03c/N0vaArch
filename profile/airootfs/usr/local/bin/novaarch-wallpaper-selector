@@ -13,7 +13,7 @@ if [[ -n "${NOVAARCH_WEB_WALL_FILTER:-}" ]]; then
 fi
 
 pick_tag_menu() {
-  if ! command -v wofi >/dev/null 2>&1; then
+  if ! command -v zenity >/dev/null 2>&1 && ! command -v kdialog >/dev/null 2>&1; then
     echo ""
     return
   fi
@@ -41,7 +41,7 @@ PY
   {
     printf '%s\n' "all"
     printf '%s\n' "${listing}"
-  } | wofi --dmenu --insensitive --prompt "Filter wallpaper tag (or all)"
+  } | /usr/local/bin/novaarch-dmenu --prompt "Filter wallpaper tag (or all)" || true
 }
 
 tag="$(pick_tag_menu)"

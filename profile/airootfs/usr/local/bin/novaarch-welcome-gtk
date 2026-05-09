@@ -50,12 +50,12 @@ class NovaWelcome(Gtk.Window):
         title.set_halign(Gtk.Align.START)
         root.pack_start(title, False, False, 0)
 
-        subtitle = Gtk.Label(label="Gaming-ready and daily-driver focused Arch experience.")
+        subtitle = Gtk.Label(label="Light KDE Plasma desktop on Arch — familiar windows, settings, and multi-monitor support.")
         subtitle.set_halign(Gtk.Align.START)
         root.pack_start(subtitle, False, False, 0)
 
         live_hint = Gtk.Label(
-            label="Live USB boots straight into Hyprland. Connect Wi-Fi, then Launch Installer for the guided archinstall wizard (timezone, disks, username, password). Optional app bundles run first from Installer Options.",
+            label="Live USB logs into KDE Plasma automatically. Connect Wi‑Fi from the network applet, then Launch Installer for archinstall (timezone, disks, user, password). Optional extras run first from Installer Options.",
             selectable=True,
         )
         live_hint.set_halign(Gtk.Align.START)
@@ -63,8 +63,8 @@ class NovaWelcome(Gtk.Window):
         root.pack_start(live_hint, False, False, 0)
 
         tips = Gtk.Label(
-            label="Two monitors? Super+[ / Super+] switches focus between screens; Super+Shift+[ / Super+Shift+] moves the current workspace. "
-                  "GTK look: Appearance → lxappearance (gsettings is for GNOME only, not Hyprland).",
+            label="Meta (Windows) opens the application launcher. Displays & monitors: System Settings → Display. "
+                  "Drag window title bars to move; edges to resize — standard desktop behavior.",
             selectable=True,
         )
         tips.set_halign(Gtk.Align.START)
@@ -95,11 +95,25 @@ class NovaWelcome(Gtk.Window):
         self.add_button(box, "Open NovaArch Docs (website)", lambda *_: run_cmd(["xdg-open", "https://archlinux.org/"]))
         self.add_button(box, "Launch Wallpaper Selector", lambda *_: run_cmd(["/usr/local/bin/novaarch-wallpaper-selector"]))
         self.add_button(box, "Wallpaper Manager (default/import)", lambda *_: run_cmd(["/usr/local/bin/novaarch-wallpaper-manager"]))
-        self.add_button(box, "Create User (manual helper)", lambda *_: run_cmd(["kitty", "--title", "Create User", "sh", "-lc", "sudo novaarch-create-user"]))
+        self.add_button(
+            box,
+            "Create User (manual helper)",
+            lambda *_: run_cmd(
+                [
+                    "/usr/local/bin/novaarch-terminal",
+                    "--title",
+                    "Create User",
+                    "--",
+                    "sh",
+                    "-lc",
+                    "sudo novaarch-create-user",
+                ]
+            ),
+        )
         return box
 
     def open_system_settings(self, *_widget):
-        for exe in ("systemsettings", "systemsettings5", "lxappearance"):
+        for exe in ("systemsettings6", "systemsettings", "systemsettings5", "lxappearance"):
             path = shutil.which(exe)
             if path:
                 run_cmd([path])
@@ -116,7 +130,21 @@ class NovaWelcome(Gtk.Window):
         self.add_button(box, "Open NovaArch Control Center", lambda *_: run_cmd(["/usr/local/bin/novaarch-control-center"]))
         self.add_button(box, "Open system settings", self.open_system_settings)
         self.add_button(box, "Game Preset Templates", lambda *_: run_cmd(["/usr/local/bin/novaarch-game-presets"]))
-        self.add_button(box, "Steam Launch Env Help", lambda *_: run_cmd(["kitty", "--title", "Steam Env", "sh", "-lc", "novaarch-steam-env; read -rp 'Press Enter...' _"]))
+        self.add_button(
+            box,
+            "Steam Launch Env Help",
+            lambda *_: run_cmd(
+                [
+                    "/usr/local/bin/novaarch-terminal",
+                    "--title",
+                    "Steam Env",
+                    "--",
+                    "sh",
+                    "-lc",
+                    "novaarch-steam-env; read -rp 'Press Enter...' _",
+                ]
+            ),
+        )
         self.add_button(box, "NovaArch Tweaks Panel", lambda *_: run_cmd(["/usr/local/bin/novaarch-tweaks"]))
         return box
 
@@ -124,17 +152,16 @@ class NovaWelcome(Gtk.Window):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         box.set_border_width(8)
         tip = Gtk.Label(
-            label="Pick a familiar starting point: taskbar transparency, GTK/LXDE appearance, and the start-menu icon.",
+            label="Use KDE System Settings for desktop theme, window rules, taskbar/panel, and night light. lxappearance adjusts GTK apps under Plasma.",
             xalign=0,
         )
         tip.set_line_wrap(True)
         box.pack_start(tip, False, False, 0)
 
-        self.add_button(box, "Taskbar transparency / Waybar layout", lambda *_: run_cmd(["/usr/local/bin/novaarch-ui-customizer"]))
-        self.add_button(box, "GTK / icon theme (Appearance)", lambda *_: self._spawn_appearance_tool())
-        self.add_button(box, "Use Arch logo for start menu (default)", lambda *_: self._set_start_icon_default())
-        self.add_button(box, "Choose custom start-menu icon…", lambda *_: self._pick_start_icon_custom())
-        self.add_button(box, "Apply icon and reload Waybar", lambda *_: run_cmd(["/usr/local/bin/novaarch-reload-waybar"]))
+        self.add_button(box, "Open KDE System Settings", lambda *_: run_cmd(["/usr/local/bin/novaarch-ui-customizer"]))
+        self.add_button(box, "GTK / icon theme (lxappearance)", lambda *_: self._spawn_appearance_tool())
+        self.add_button(box, "Use Arch logo for launcher icon file (optional)", lambda *_: self._set_start_icon_default())
+        self.add_button(box, "Choose custom launcher icon file…", lambda *_: self._pick_start_icon_custom())
         return box
 
     def _spawn_appearance_tool(self):
@@ -210,9 +237,31 @@ class NovaWelcome(Gtk.Window):
         box.set_border_width(8)
         self.add_button(box, "Package Updates", lambda *_: run_cmd(["/usr/local/bin/novaarch-system-update"]))
         self.add_button(box, "Richer Monitor (GPU/CPU live)", lambda *_: run_cmd(["/usr/local/bin/novaarch-monitor"]))
-        self.add_button(box, "Bluetooth Manager", lambda *_: run_cmd(["blueman-manager"]))
-        self.add_button(box, "Wi-Fi / Network Manager", lambda *_: run_cmd(["kitty", "--title", "Network", "nmtui"]))
-        self.add_button(box, "Wireless Repair", lambda *_: run_cmd(["kitty", "--title", "Wireless Repair", "sh", "-lc", "sudo novaarch-wireless-repair; read -rp 'Press Enter...' _"]))
+        self.add_button(
+            box,
+            "Bluetooth",
+            lambda *_: run_cmd(["bluedevil-wizard"] if shutil.which("bluedevil-wizard") else ["/usr/local/bin/novaarch-ui-customizer"]),
+        )
+        self.add_button(
+            box,
+            "Wi-Fi / Network (nmtui)",
+            lambda *_: run_cmd(["/usr/local/bin/novaarch-terminal", "--title", "Network", "--", "nmtui"]),
+        )
+        self.add_button(
+            box,
+            "Wireless Repair",
+            lambda *_: run_cmd(
+                [
+                    "/usr/local/bin/novaarch-terminal",
+                    "--title",
+                    "Wireless Repair",
+                    "--",
+                    "sh",
+                    "-lc",
+                    "sudo novaarch-wireless-repair; read -rp 'Press Enter...' _",
+                ]
+            ),
+        )
         return box
 
     def make_settings_tab(self):
@@ -241,7 +290,13 @@ class NovaWelcome(Gtk.Window):
         box.pack_start(self.status, False, False, 2)
         self.refresh_status()
 
-        self.add_button(box, "Open ~/.config", lambda *_: run_cmd(["thunar", os.path.expanduser("~/.config")]))
+        self.add_button(
+            box,
+            "Open ~/.config",
+            lambda *_: run_cmd(["dolphin", os.path.expanduser("~/.config")])
+            if shutil.which("dolphin")
+            else run_cmd(["/usr/local/bin/novaarch-ui-customizer"]),
+        )
         return box
 
     def _initial_lang_index(self):

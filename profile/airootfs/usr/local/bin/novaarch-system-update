@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if ! command -v kitty >/dev/null 2>&1; then
-  echo "kitty is required for updater UI."
-  exit 1
-fi
-
-kitty --title "NovaArch Updater" sh -lc '
+exec /usr/local/bin/novaarch-terminal --title "NovaArch Updater" -- sh -lc '
   echo "NovaArch update session"
   echo "----------------------"
   sudo pacman -Syu

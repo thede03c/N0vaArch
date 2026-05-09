@@ -1,24 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if ! command -v wofi >/dev/null 2>&1; then
-  echo "wofi is required."
-  exit 1
-fi
-
-if ! command -v kitty >/dev/null 2>&1; then
-  echo "kitty is required."
+if ! command -v zenity >/dev/null 2>&1 && ! command -v kdialog >/dev/null 2>&1; then
+  echo "zenity or kdialog is required."
   exit 1
 fi
 
 choice="$(
-cat <<'EOF' | wofi --dmenu --prompt 'NovaArch Optional Bundles'
+cat <<'EOF' | /usr/local/bin/novaarch-dmenu --prompt 'NovaArch Optional Bundles'
 Peripheral RGB / Device Control
 Virtualization Host Tools
 Privacy Browser Bundle
 Install All Optional Bundles
 EOF
-)"
+)" || exit 0
 
 [[ -n "${choice:-}" ]] || exit 0
 
@@ -41,7 +36,7 @@ case "${choice}" in
     ;;
 esac
 
-kitty --title "NovaArch Optional Bundles" sh -lc "
+exec /usr/local/bin/novaarch-terminal --title "NovaArch Optional Bundles" -- sh -lc "
   echo 'Installing optional packages...'
   sudo pacman -S --needed ${pkgs}
   echo

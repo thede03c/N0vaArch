@@ -11,8 +11,8 @@ pick_app() {
     rg --files "/usr/share/applications" -g "*.desktop" \
       | sed 's|.*/||' \
       | sort \
-      | wofi --dmenu --prompt "Select app"
-  )"
+      | /usr/local/bin/novaarch-dmenu --prompt "Select app"
+  )" || return 1
   [[ -n "${picked:-}" ]] || return 1
   echo "${picked}"
 }
@@ -26,16 +26,16 @@ add_to_desktop() {
 pin_to_taskbar() {
   local app="$1"
   install -Dm755 "/usr/share/applications/${app}" "${pinned_dir}/${app}"
-  notify-send "NovaArch" "Pinned ${app} to taskbar launcher" >/dev/null 2>&1 || true
+  notify-send "NovaArch" "Saved ${app} to NovaArch pin folder. On KDE you can also drag the app to the panel." >/dev/null 2>&1 || true
 }
 
-choice="$(cat <<'EOF' | wofi --dmenu --prompt 'App Shortcuts'
+choice="$(cat <<'EOF' | /usr/local/bin/novaarch-dmenu --prompt 'App Shortcuts'
 Add App to Desktop
-Pin App to Taskbar Launcher
-Unpin App from Taskbar Launcher
+Pin App (saved copy)
+Unpin App from saved copy
 Open Desktop Folder
 EOF
-)"
+)" || exit 0
 [[ -n "${choice:-}" ]] || exit 0
 
 case "${choice}" in
@@ -43,21 +43,24 @@ case "${choice}" in
     app="$(pick_app)" || exit 0
     add_to_desktop "${app}"
     ;;
-  "Pin App to Taskbar Launcher")
+  "Pin App (saved copy)")
     app="$(pick_app)" || exit 0
     pin_to_taskbar "${app}"
     ;;
-  "Unpin App from Taskbar Launcher")
+  "Unpin App from saved copy")
     app="$(
       rg --files "${pinned_dir}" -g "*.desktop" \
         | sed 's|.*/||' \
         | sort \
-        | wofi --dmenu --prompt "Unpin app"
-    )"
+        | /usr/local/bin/novaarch-dmenu --prompt "Unpin app"
+    )" || exit 0
     [[ -n "${app:-}" ]] || exit 0
     rm -f "${pinned_dir}/${app}"
     ;;
   "Open Desktop Folder")
-    exec thunar "${desktop_dir}"
+    if command -v dolphin >/dev/null 2>&1; then
+      exec dolphin "${desktop_dir}"
+    fi
+    exec /usr/local/bin/novaarch-terminal --title "Desktop" -- sh -lc "cd \"${desktop_dir}\" && ${SHELL:-bash}"
     ;;
 esac

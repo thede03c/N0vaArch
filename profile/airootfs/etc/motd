@@ -1,18 +1,12 @@
 NovaArch Live Environment
 -------------------------
-Gaming + daily-use focused Arch-based custom ISO.
+Light KDE Plasma desktop on Arch — windows, panels, and System Settings work like a typical PC.
 
-Live boots as user live with no tty login prompt — use NovaArch Welcome → Launch Installer (archinstall wizard) after Wi‑Fi works.
+Live logs in as user live (no password). Connect Wi‑Fi from the network icon, then Welcome → Launch Installer (archinstall).
 
-Multi-monitor (Hyprland): Super+[ / Super+] = focus prev/next screen; Super+Shift+[ / ] moves the workspace.
-
-GTK theme (no gsettings on Hyprland): run lxappearance or Welcome → Theme tab.
+Displays: System Settings → Display. Application launcher: Meta (Windows) key.
 
 Useful commands:
-  archinstall / novaarch-launch-installer
-  novaarch-create-user (optional helper)
-  novaarch-web-wallpaper
+  novaarch-launch-installer   (or: sudo archinstall)
   nmtui
-  steam
-  mullvad-vpn
-  piper
+  systemsettings

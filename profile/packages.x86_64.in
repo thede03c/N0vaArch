@@ -17,13 +17,11 @@ nbd
 nano
 sudo
 networkmanager
-network-manager-applet
 bluez
 bluez-utils
-blueman
+bluedevil
 iwd
 archinstall
-# calamares — not packaged in Arch core/extra/multilib; add from AUR into a local pacman repo if you ship a graphical installer fork.
 git
 curl
 wget
@@ -41,39 +39,27 @@ intel-ucode
 mesa
 vulkan-radeon
 vulkan-intel
-lib32-mesa
-lib32-vulkan-radeon
-lib32-vulkan-intel
 xf86-video-amdgpu
 xf86-video-intel
 vulkan-tools
 mesa-utils
 
-# Gaming stack
-steam
-gamemode
-lib32-gamemode
-mangohud
-lib32-mangohud
-gamescope
-goverlay
+# KDE Plasma (minimal desktop — System Settings, movable windows, multi-monitor in Settings)
+plasma-desktop
+plasma-systemmonitor
+sddm
+konsole
+dolphin
+kio-extras
+ark
+plasma-nm
+kde-gtk-config
+kdialog
+xdg-user-dirs
+xdg-desktop-portal
+xdg-desktop-portal-kde
 
-# Apps requested
-discord
-mullvad-vpn
-
-# Virtualization (KVM/libvirt stack)
-virt-manager
-qemu-full
-libvirt
-edk2-ovmf
-dnsmasq
-vde2
-virt-install
-virt-viewer
-swtpm
-
-# Browser / utilities
+# Browser / utilities (GTK welcome + zenity menus)
 chromium
 xdg-utils
 zenity
@@ -81,68 +67,32 @@ python-gobject
 python
 gtk3
 ripgrep
-flatpak
-spotify-launcher
-telegram-desktop
 
-# Theme / appearance (FIXED)
+# Theme / appearance
 lxappearance
-
-# Artwork (FIXED replacement)
 archlinux-wallpaper
 
-# System UI / desktop
 plymouth
-
-# Peripheral / RGB ecosystem
-ratbagd
-
-# Hardware tools
 usbutils
-hidapi
 
-# Wayland desktop stack
-hyprland
-xdg-desktop-portal-hyprland
-waybar
-wofi
-kitty
-konsole
-fish
-thunar
-thunar-archive-plugin
-file-roller
-grim
-slurp
-wl-clipboard
-swaybg
-swaylock
-polkit-gnome
-qt5-wayland
-qt6-wayland
+# Audio (Plasma + pipewire)
 pipewire
 wireplumber
-iptables
-qt6-multimedia-ffmpeg
 pipewire-alsa
 pipewire-pulse
-pipewire-jack
 pavucontrol
+iptables
 
 # System tools
 btop
 htop
-qps
 fastfetch
 lm_sensors
 cpupower
-
-# Login manager
-greetd
-greetd-tuigreet
+fish
+wl-clipboard
 
 # Fonts
-ttf-jetbrains-mono-nerd
 ttf-dejavu
 noto-fonts
 noto-fonts-emoji

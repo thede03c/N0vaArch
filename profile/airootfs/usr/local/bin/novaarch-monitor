@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-exec kitty --title "NovaArch Live Monitor" sh -lc '
+exec /usr/local/bin/novaarch-terminal --title "NovaArch Live Monitor" -- sh -lc '
 while true; do
   clear
   echo "NovaArch Hardware Monitor"
