@@ -22,58 +22,6 @@ This project builds a personalized Arch Linux ISO using `archiso`.
 - Lian Li SL Wireless LCD fan control on Linux is limited; no official suite equivalent.
 - Monsgeek keyboards generally work as HID devices; advanced features depend on firmware ecosystem (QMK/VIA support varies by model).
 
-## Build on Windows (WSL2 path for your setup)
-
-You cannot run `mkarchiso` natively from Windows PowerShell. Use WSL2 and keep project at:
-
-- `C:\Users\1\Desktop\project`
-
-1. Install Ubuntu in WSL2.
-2. In Ubuntu:
-   - `sudo apt update && sudo apt install -y git rsync arch-install-scripts`
-   - `cd /mnt/c/Users/1/Desktop/project`
-   - `chmod +x scripts/*.sh`
-3. Run:
-   - `sudo ./scripts/setup-archiso-env.sh`
-   - `sudo ./scripts/build-iso.sh`
-4. Output ISO will appear in `out/`.
-
-### If WSL is unavailable (Boot Camp or restricted Windows)
-
-Use one of these methods:
-
-1. Arch Linux VM build (recommended fallback)
-   - Create an Arch VM in VirtualBox.
-   - Copy project into VM and run:
-     - `sudo ./scripts/setup-archiso-env.sh`
-     - `sudo ./scripts/build-iso.sh`
-2. GitHub Actions build (no local Linux needed)
-  - Workflow file: `.github/workflows/build-iso.yml`
-  - Trigger manually from Actions tab (`Build ISO`) and choose `kernel_track` (`zen`, `cachy`, `lts`).
-  - Download generated ISO artifact + `SHA256SUMS.txt`.
-
-## Quick customization
-
-Edit `scripts/iso-config.env`:
-
-- `ISO_NAME`
-- `ISO_LABEL`
-- `ISO_PUBLISHER`
-- `ISO_APPLICATION`
-- `KERNEL_TRACK` (`zen`, `cachy`, or `lts`)
-- `ENABLE_BLEEDING_EDGE_TRACK` (`1` enables experimental metadata for future edge presets)
-
-Replace branding assets:
-
-- `branding/logo.svg`
-- `branding/logo-variants/*` (alternative A-style marks)
-- `branding/wallpapers/*`
-
-Animated wallpaper scenes are included at:
-
-- `profile/airootfs/usr/share/novaarch/web-wallpapers/*/index.html`
-- 10 scenes are included by default (2 original + 8 new).
-
 ## Build
 
 ```bash
@@ -141,16 +89,6 @@ sudo ./scripts/build-iso.sh
 - Per-game templates command: `novaarch-game-presets`.
 - Rich monitor command: `novaarch-monitor` (GPU usage/temp/freq/power + system snapshot).
 - HTML scenes are resolution-independent and auto-scale to any display size.
-
-## GitHub Actions release flow
-
-1. Push your branch to GitHub.
-2. Open Actions -> `Build ISO`.
-3. Run workflow and pick `kernel_track` (`zen`, `cachy`, `lts`).
-4. Download artifact bundle (`*.iso` + `SHA256SUMS.txt`).
-5. Verify checksum locally:
-   - `sha256sum -c SHA256SUMS.txt`
-6. Flash ISO with Rufus and test boot/install path.
 
 ## Install to USB
 
