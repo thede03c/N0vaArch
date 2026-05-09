@@ -9,6 +9,8 @@ linux-firmware-broadcom
 linux-lts
 linux-lts-headers
 mkinitcpio
+mkinitcpio-archiso
+mkinitcpio-nfs-utils
 archiso
 syslinux
 nano
